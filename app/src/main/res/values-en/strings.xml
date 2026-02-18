@@ -2,13 +2,13 @@
     <!-- App general -->
     <string name="app_name">LkVault</string>
     <!-- Contraseñas -->
-    <string name="titulo_con">Contraseñas</string>
+    <string name="titulo_con">Passwords</string>
     <!-- Imágenes -->
-    <string name="titulo_ima">Imágenes</string>
+    <string name="titulo_ima">Images</string>
     <!-- Vídeos -->
-    <string name="titulo_vid">Vídeos</string>
+    <string name="titulo_vid">Videos</string>
     <!-- Audios -->
     <string name="titulo_aud">Audios</string>
     <!-- Documentos -->
-    <string name="titulo_doc">Documentos</string>
+    <string name="titulo_doc">Documents</string>
 </resources>

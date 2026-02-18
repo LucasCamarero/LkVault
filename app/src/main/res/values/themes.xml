@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.LkVault" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Tema principal de la app, basado en AppCompat -->
+    <style name="Theme.LkVault" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Aquí puedes personalizar cosas si quieres más adelante -->
+    </style>
 </resources>
