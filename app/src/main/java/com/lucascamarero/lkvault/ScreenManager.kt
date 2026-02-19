@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -121,7 +122,9 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.width(50.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
 
                     DropdownMenuItem(
@@ -218,7 +221,7 @@ fun BarraInferior(navController: NavHostController) {
                 indicatorColor = Color.Transparent
             )
         )
-
+/*
         // Vídeos
         NavigationBarItem(
             icon = { Icon(Icons.Default.Videocam,
@@ -277,6 +280,6 @@ fun BarraInferior(navController: NavHostController) {
                 unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
                 indicatorColor = Color.Transparent
             )
-        )
+        )*/
     }
 }
