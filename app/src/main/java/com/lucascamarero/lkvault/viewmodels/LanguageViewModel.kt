@@ -9,22 +9,6 @@ import androidx.lifecycle.ViewModel
 import com.lucascamarero.lkvault.models.AppLanguage
 import java.util.Locale
 
-/*
-class LanguageViewModel : ViewModel() {
-
-
-    var currentLanguage by mutableStateOf(AppLanguage.CASTELLANO)
-        private set
-
-
-    fun changeLanguage(language: AppLanguage) {
-        currentLanguage = language
-
-        val localeList = LocaleListCompat.forLanguageTags(language.tag)
-        AppCompatDelegate.setApplicationLocales(localeList)
-    }
-}*/
-
 class LanguageViewModel : ViewModel() {
 
     var currentLanguage by mutableStateOf(AppLanguage.CASTELLANO)

@@ -1,18 +1,10 @@
 <resources>
     <!-- App general -->
     <string name="app_name">LkVault</string>
-    <string name="usb">You have not inserted a USB device. Do so now,
-        and if you have not already, select it and create a folder
-        named Vault within it.</string>
-    <string name="boton_usb">Select USB and folder</string>
+    <string name="usb1">USB disconnected.</string>
+    <string name="usb2">Connect the device to continue.</string>
     <!-- Contraseñas -->
     <string name="titulo_con">Passwords</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Images</string>
-    <!-- Vídeos -->
-    <string name="titulo_vid">Videos</string>
-    <!-- Audios -->
-    <string name="titulo_aud">Audios</string>
-    <!-- Documentos -->
-    <string name="titulo_doc">Documents</string>
 </resources>

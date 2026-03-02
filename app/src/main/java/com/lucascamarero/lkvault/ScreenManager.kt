@@ -3,35 +3,27 @@ package com.lucascamarero.lkvault
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.lucascamarero.lkvault.models.AppLanguage
-import com.lucascamarero.lkvault.screens.AudioScreen
-import com.lucascamarero.lkvault.screens.DocumentScreen
 import com.lucascamarero.lkvault.screens.ImageScreen
 import com.lucascamarero.lkvault.screens.PasswordScreen
-import com.lucascamarero.lkvault.screens.VideoScreen
 import com.lucascamarero.lkvault.ui.theme.Typography2
 import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
+import com.lucascamarero.lkvault.viewmodels.UsbViewModel
 import com.lucascamarero.lkvault.R
 
 @Composable
@@ -39,38 +31,64 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     val navController = rememberNavController()
 
+    val usbViewModel: UsbViewModel = viewModel()
+    val usbConnected = usbViewModel.isUsbConnected.value
+
     Scaffold(
         topBar = { BarraSuperior(languageViewModel) },
-        bottomBar = { BarraInferior(navController) }
+        bottomBar = {
+            if (usbConnected) {
+                BarraInferior(navController)
+            }
+        }
     ) { innerPadding ->
 
-        // Contenedor principal donde se muestra la pantalla activa
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
-            // Sistema de navegación entre pantallas
-            NavHost(
-                navController = navController,
-                startDestination = "password"
-            ) {
-                composable("password") {
-                    PasswordScreen(navController)
+            if (!usbConnected) {
+
+                // Pantalla bloqueada si no hay USB
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(30.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column {
+                        Text(
+                            stringResource(id = R.string.usb1),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            stringResource(id = R.string.usb2),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
                 }
-                composable("image") {
-                    ImageScreen(navController)
-                }
-                composable("video") {
-                    VideoScreen(navController)
-                }
-                composable("audio") {
-                    AudioScreen(navController)
-                }
-                composable("doc") {
-                    DocumentScreen(navController)
+
+            } else {
+
+                // Navegación normal si USB está conectado
+                NavHost(
+                    navController = navController,
+                    startDestination = "password"
+                ) {
+                    composable("password") {
+                        PasswordScreen(navController)
+                    }
+                    composable("image") {
+                        ImageScreen(navController)
+                    }
                 }
             }
         }
@@ -103,7 +121,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
             }
         },
         actions = {
-            // Selector de idioma
+
             Box {
 
                 IconButton(onClick = { expanded = true }) {
@@ -158,35 +176,28 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                     )
                 }
             }
-
-            // Botón de ayuda
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    contentDescription = "Ayuda",
-                    tint = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
         }
     )
 }
 
-// Barra Inferior
 @Composable
 fun BarraInferior(navController: NavHostController) {
 
-    // variables para poder cambiar de color los items al ser seleccionados
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    NavigationBar (containerColor = MaterialTheme.colorScheme.primaryContainer){
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primaryContainer
+    ) {
 
-        // Contraseñas
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Lock,
-                contentDescription = "Password",
-                modifier = Modifier.size(32.dp)) },
+            icon = {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = "Password",
+                    modifier = Modifier.size(32.dp)
+                )
+            },
             selected = currentRoute == "password",
             onClick = {
                 navController.navigate("password") {
@@ -202,11 +213,14 @@ fun BarraInferior(navController: NavHostController) {
             )
         )
 
-        // Imágenes
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Image,
-                contentDescription = "Image",
-                modifier = Modifier.size(32.dp)) },
+            icon = {
+                Icon(
+                    Icons.Default.Image,
+                    contentDescription = "Image",
+                    modifier = Modifier.size(32.dp)
+                )
+            },
             selected = currentRoute == "image",
             onClick = {
                 navController.navigate("image") {
@@ -221,65 +235,5 @@ fun BarraInferior(navController: NavHostController) {
                 indicatorColor = Color.Transparent
             )
         )
-/*
-        // Vídeos
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Videocam,
-                contentDescription = "Video",
-                modifier = Modifier.size(32.dp)) },
-            selected = currentRoute == "video",
-            onClick = {
-                navController.navigate("video") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.background,
-                unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
-                indicatorColor = Color.Transparent
-            )
-        )
-
-        // Audios
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Headphones,
-                contentDescription = "Audio",
-                modifier = Modifier.size(32.dp)) },
-            selected = currentRoute == "audio",
-            onClick = {
-                navController.navigate("audio") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.background,
-                unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
-                indicatorColor = Color.Transparent
-            )
-        )
-
-        // Documentos
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Description,
-                contentDescription = "Doc",
-                modifier = Modifier.size(32.dp)) },
-            selected = currentRoute == "doc",
-            onClick = {
-                navController.navigate("doc") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.background,
-                unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
-                indicatorColor = Color.Transparent
-            )
-        )*/
     }
 }
