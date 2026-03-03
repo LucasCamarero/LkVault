@@ -26,16 +26,25 @@ import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
 import com.lucascamarero.lkvault.viewmodels.UsbViewModel
 import com.lucascamarero.lkvault.R
 
+// Composable principal encargado de gestionar:
+// - Estado del USB
+// - Navegación entre pantallas
+// - Barras superior e inferior
 @Composable
 fun ScreenManager(languageViewModel: LanguageViewModel) {
 
+    // Controlador de navegación para Compose Navigation
     val navController = rememberNavController()
 
+    // ViewModel que expone el estado del USB
     val usbViewModel: UsbViewModel = viewModel()
     val usbConnected = usbViewModel.isUsbConnected.value
 
     Scaffold(
+        // Barra superior siempre visible
         topBar = { BarraSuperior(languageViewModel) },
+
+        // Barra inferior solo visible si el USB es válido
         bottomBar = {
             if (usbConnected) {
                 BarraInferior(navController)
@@ -43,6 +52,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
         }
     ) { innerPadding ->
 
+        // Contenedor principal
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -50,9 +60,10 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
+            // Si no hay USB válido, se bloquea la aplicación
             if (!usbConnected) {
 
-                // Pantalla bloqueada si no hay USB
+                // Pantalla informativa cuando no hay USB
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -78,14 +89,18 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
             } else {
 
-                // Navegación normal si USB está conectado
+                // Navegación normal cuando el USB está conectado
                 NavHost(
                     navController = navController,
                     startDestination = "password"
                 ) {
+
+                    // Pantalla de gestión de contraseñas
                     composable("password") {
                         PasswordScreen(navController)
                     }
+
+                    // Pantalla de gestión de imágenes
                     composable("image") {
                         ImageScreen(navController)
                     }
@@ -95,6 +110,10 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     }
 }
 
+// Barra superior con:
+// - Nombre de la aplicación
+// - Versión
+// - Selector de idioma
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(languageViewModel: LanguageViewModel) {
@@ -102,7 +121,9 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     val context = LocalContext.current
     val version = remember { getAppVersion(context) }
 
+    // Controla la apertura del menú desplegable de idioma
     var expanded by remember { mutableStateOf(false) }
+
     val currentLanguage = languageViewModel.currentLanguage
 
     TopAppBar(
@@ -112,7 +133,10 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
         ),
         title = {
             Row {
+                // Nombre de la app
                 Text("Lk Vault ", style = Typography2.titleSmall)
+
+                // Versión actual
                 Text(
                     text = "v$version",
                     style = MaterialTheme.typography.labelMedium,
@@ -124,6 +148,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
 
             Box {
 
+                // Botón que muestra la bandera actual
                 IconButton(onClick = { expanded = true }) {
                     Icon(
                         painter = painterResource(
@@ -138,6 +163,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                     )
                 }
 
+                // Menú desplegable para cambiar idioma
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -145,6 +171,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
 
+                    // Opción Español
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -160,6 +187,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                         }
                     )
 
+                    // Opción Inglés
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -180,9 +208,12 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     )
 }
 
+// Barra de navegación inferior que permite cambiar
+// entre pantalla de contraseñas e imágenes.
 @Composable
 fun BarraInferior(navController: NavHostController) {
 
+    // Obtiene la ruta actual para marcar el item seleccionado
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -190,6 +221,7 @@ fun BarraInferior(navController: NavHostController) {
         containerColor = MaterialTheme.colorScheme.primaryContainer
     ) {
 
+        // Item de contraseñas
         NavigationBarItem(
             icon = {
                 Icon(
@@ -213,6 +245,7 @@ fun BarraInferior(navController: NavHostController) {
             )
         )
 
+        // Item de imágenes
         NavigationBarItem(
             icon = {
                 Icon(

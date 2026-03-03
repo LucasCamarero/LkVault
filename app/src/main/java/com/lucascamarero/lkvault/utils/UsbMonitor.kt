@@ -10,12 +10,17 @@ import android.content.IntentFilter
 //
 // Su responsabilidad NO es decidir si el dispositivo es válido,
 // sino detectar cambios del sistema y notificar el nuevo estado.
+//
+// La validación estricta del dispositivo (existencia de LkVault)
+// se delega a UsbUtils.
 class UsbMonitor(
-    // Contexto necesario para registrar el BroadcastReceiver
+
+    // Contexto necesario para registrar el BroadcastReceiver.
+    // Se recomienda usar Application context para evitar fugas.
     private val context: Context,
 
     // Callback que comunica a la capa superior (ViewModel)
-    // si existe o no un dispositivo externo válido
+    // si existe o no un dispositivo externo válido.
     private val onUsbStateChanged: (Boolean) -> Unit
 ) {
 
@@ -27,12 +32,12 @@ class UsbMonitor(
         // emite alguno de los intents registrados en el IntentFilter.
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            // Cada vez que hay un cambio en el estado del almacenamiento,
-            // delegamos la validación real a UsbUtils.
-            // El resultado (true/false) se envía al ViewModel mediante el callback.
-            onUsbStateChanged(
-                UsbUtils.isValidExternalDeviceConnected(this@UsbMonitor.context)
-            )
+            // Ante cualquier cambio, delegamos la comprobación
+            // a UsbUtils, que aplica el criterio estricto:
+            // volumen removible + montado + contiene LkVault.
+            val isValid = UsbUtils.isValidExternalDeviceConnected(this@UsbMonitor.context)
+
+            onUsbStateChanged(isValid)
         }
     }
 
@@ -40,7 +45,6 @@ class UsbMonitor(
     // Registra el BroadcastReceiver con los eventos relevantes.
     fun start() {
 
-        // Se construye el filtro de intents que queremos escuchar:
         val filter = IntentFilter().apply {
 
             // Se dispara cuando un medio externo se monta (USB insertado)
@@ -52,25 +56,24 @@ class UsbMonitor(
             // Se dispara cuando el medio se desmonta lógicamente
             addAction(Intent.ACTION_MEDIA_UNMOUNTED)
 
-            // Necesario para que el sistema permita escuchar eventos
-            // relacionados con rutas de archivos
+            // Necesario para escuchar eventos relacionados con rutas de archivos
             addDataScheme("file")
         }
 
-        // Registro del receiver en el sistema
         context.registerReceiver(receiver, filter)
 
         // Comprobación inicial:
         // Cuando se inicia la app, verificamos el estado actual
         // sin esperar a que ocurra un evento del sistema.
-        onUsbStateChanged(
-            UsbUtils.isValidExternalDeviceConnected(context)
-        )
+        val isValid = UsbUtils.isValidExternalDeviceConnected(context)
+        onUsbStateChanged(isValid)
     }
 
     // Detiene la monitorización.
     // Es fundamental llamarlo (por ejemplo, en onCleared del ViewModel)
-    // para evitar fugas de memoria y receivers registrados indefinidamente.
+    // para evitar:
+    // - Fugas de memoria
+    // - Receivers registrados indefinidamente
     fun stop() {
         context.unregisterReceiver(receiver)
     }

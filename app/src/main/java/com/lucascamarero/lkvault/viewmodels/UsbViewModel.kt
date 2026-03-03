@@ -1,49 +1,60 @@
 package com.lucascamarero.lkvault.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.AndroidViewModel
+import com.lucascamarero.lkvault.security.VaultManager
 import com.lucascamarero.lkvault.utils.UsbMonitor
+import com.lucascamarero.lkvault.utils.UsbUtils
 
 // ViewModel encargado de exponer a la UI el estado del
-// dispositivo externo válido (USB con carpeta LkVault).
+// dispositivo externo válido (USB que contiene la carpeta LkVault).
 //
 // Forma parte de la arquitectura MVVM:
-// - UsbMonitor → Detecta cambios del sistema
-// - UsbViewModel → Mantiene estado observable
-// - UI (Compose) → Reacciona a los cambios automáticamente
+//
+// - UsbMonitor → Detecta cambios físicos del sistema
+// - UsbUtils → Valida si el dispositivo cumple los requisitos
+// - VaultManager → Gestiona la estructura interna del vault
+// - UsbViewModel → Orquesta y mantiene estado observable
+// - UI (Compose) → Reacciona automáticamente a los cambios
 class UsbViewModel(application: Application) : AndroidViewModel(application) {
 
     // Estado observable por Compose.
-    // Cuando cambia su valor, la UI se recompone automáticamente.
-    //
-    // Solo puede modificarse dentro del ViewModel (private set),
-    // evitando que la UI altere el estado directamente.
+    // true  → Existe USB válido con carpeta LkVault
+    // false → No existe USB válido
     var isUsbConnected = mutableStateOf(false)
         private set
 
+    // Gestor de la estructura interna del vault
+    private val vaultManager = VaultManager()
+
     // Instancia de UsbMonitor.
-    // Se le pasa el Application context para evitar fugas de memoria.
-    // El callback actualiza el estado cada vez que cambia
-    // la conexión del dispositivo externo.
-    private val monitor = UsbMonitor(application) { connected ->
-        isUsbConnected.value = connected
+    // Se utiliza el Application context para evitar fugas de memoria.
+    private val monitor = UsbMonitor(application) { isValidDevice ->
+
+        if (isValidDevice) {
+
+            // Obtenemos la raíz del volumen válido
+            val root = UsbUtils.getValidExternalRoot(application)
+
+            if (root != null) {
+                // Si existe LkVault, aseguramos que las subcarpetas necesarias existan
+                vaultManager.createStructureIfNeeded(root)
+            }
+        }
+
+        // Se actualiza el estado observable para la UI
+        isUsbConnected.value = isValidDevice
     }
 
-    // Bloque de inicialización.
     // Se ejecuta cuando el ViewModel es creado.
     // Inicia la monitorización del almacenamiento externo.
     init {
         monitor.start()
     }
 
-    // Se ejecuta cuando el ViewModel se destruye
-    // (por ejemplo, cuando la pantalla se elimina).
-    //
-    // Es fundamental detener el monitor para:
-    // - Desregistrar el BroadcastReceiver
-    // - Evitar fugas de memoria
-    // - Evitar escuchar eventos innecesarios
+    // Se ejecuta cuando el ViewModel se destruye.
+    // Detiene la monitorización para evitar fugas de memoria.
     override fun onCleared() {
         monitor.stop()
         super.onCleared()

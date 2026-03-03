@@ -7,7 +7,12 @@ import java.io.File
 
 // Objeto singleton que contiene utilidades relacionadas
 // con la detección y validación de dispositivos externos.
+//
+// En este diseño, un dispositivo solo se considera válido
+// si contiene explícitamente la carpeta raíz del vault.
 object UsbUtils {
+
+    private const val VAULT_FOLDER_NAME = "LkVault"
 
     // Comprueba si existe un dispositivo externo válido.
     // Para considerarse válido debe:
@@ -15,6 +20,15 @@ object UsbUtils {
     // 2. Estar montado (MEDIA_MOUNTED).
     // 3. Contener en su raíz la carpeta "LkVault".
     fun isValidExternalDeviceConnected(context: Context): Boolean {
+
+        val root = getValidExternalRoot(context)
+        return root != null
+    }
+
+    // Devuelve el directorio raíz del volumen externo válido.
+    // Si no existe ninguno que cumpla las condiciones,
+    // devuelve null.
+    fun getValidExternalRoot(context: Context): File? {
 
         // Se obtiene el servicio del sistema encargado de gestionar
         // los volúmenes de almacenamiento del dispositivo.
@@ -33,15 +47,14 @@ object UsbUtils {
             if (volume.isRemovable &&
                 volume.state == Environment.MEDIA_MOUNTED
             ) {
+
                 // Obtenemos el directorio raíz del volumen
                 val directory = volume.directory
 
-                // Verificamos que el sistema nos permita acceder a él
                 if (directory != null) {
 
                     // Construimos la referencia a la carpeta "LkVault"
-                    // que debe existir en la raíz del dispositivo
-                    val lkVaultFolder = File(directory, "LkVault")
+                    val lkVaultFolder = File(directory, VAULT_FOLDER_NAME)
 
                     // Comprobamos:
                     // - Que la carpeta exista
@@ -49,9 +62,7 @@ object UsbUtils {
                     if (lkVaultFolder.exists() &&
                         lkVaultFolder.isDirectory
                     ) {
-                        // Si se cumplen todas las condiciones,
-                        // el dispositivo externo se considera válido
-                        return true
+                        return directory
                     }
                 }
             }
@@ -59,6 +70,6 @@ object UsbUtils {
 
         // Si ningún volumen cumple las condiciones,
         // no hay dispositivo externo válido conectado
-        return false
+        return null
     }
 }

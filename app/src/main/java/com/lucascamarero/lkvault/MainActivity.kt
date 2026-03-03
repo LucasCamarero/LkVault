@@ -15,35 +15,53 @@ import com.lucascamarero.lkvault.screens.SplashScreen
 import com.lucascamarero.lkvault.ui.theme.LkVaultTheme
 import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
 
+// Activity principal de la aplicación.
+//
+// Responsabilidades:
+// - Configurar el entorno visual (Edge-to-Edge).
+// - Inicializar Compose.
+// - Aplicar el tema global.
+// - Mostrar SplashScreen inicial.
+// - Delegar la navegación al ScreenManager.
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Permite que la app dibuje detrás de las barras del sistema
         enableEdgeToEdge()
 
         setContent {
+
+            // Tema global de la aplicación
             LkVaultTheme(dynamicColor = false) {
 
+                // ViewModel encargado de la gestión del idioma
                 val languageViewModel: LanguageViewModel = viewModel()
 
+                // Controla si se muestra la pantalla de inicio
                 var showSplash by rememberSaveable { mutableStateOf(true) }
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    /*
+
                     when {
+                        // Mientras showSplash sea true, se muestra la pantalla inicial
                         showSplash -> {
                             SplashScreen(
                                 onTimeout = { showSplash = false }
                             )
                         }
+
+                        // Una vez finalizado el splash, se inicia la navegación real
                         else -> {
-                            ScreenManager(languageViewModel = languageViewModel)
+                            ScreenManager(
+                                languageViewModel = languageViewModel
+                            )
                         }
-                    }*/
-                    ScreenManager(languageViewModel = languageViewModel)
+                    }
                 }
             }
         }
