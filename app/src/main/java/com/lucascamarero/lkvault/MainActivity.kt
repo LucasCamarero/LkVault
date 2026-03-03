@@ -1,6 +1,7 @@
 package com.lucascamarero.lkvault
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lucascamarero.lkvault.screens.SplashScreen
+import com.lucascamarero.lkvault.security.MasterKeyGenerator
 import com.lucascamarero.lkvault.ui.theme.LkVaultTheme
 import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
 
