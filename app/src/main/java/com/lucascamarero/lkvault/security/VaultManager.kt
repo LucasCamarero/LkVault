@@ -2,15 +2,8 @@ package com.lucascamarero.lkvault.security
 
 import java.io.File
 
-// Clase encargada de gestionar la estructura interna del vault
-// almacenado en el dispositivo USB.
-//
-// Responsabilidades:
-// - Verificar que la estructura mínima requerida exista.
-// - Crear las subcarpetas necesarias si faltan.
-//
-// Importante:
-// - NO crea la carpeta raíz "LkVault".
+// HU-7: ESTRUCTURA INTERNA DE ALMACENAMIENTO EN USB
+// Clase encargada de gestionar la estructura interna del USB
 // - NO gestiona aún elementos criptográficos (HU8).
 class VaultManager {
 
@@ -26,13 +19,8 @@ class VaultManager {
         const val IMAGES_FOLDER = "images"
     }
 
-    // Crea las subcarpetas internas necesarias si no existen.
-    //
-    // Requisitos previos:
-    // - La carpeta raíz "LkVault" debe existir.
-    //
-    // Este método NO crea la carpeta raíz.
-    // Solo garantiza que la estructura mínima interna esté presente.
+    // Crea las subcarpetas internas necesarias si no existen
+    // (excepto LkVault que tiene que estar creada)
     fun createStructureIfNeeded(root: File) {
 
         val vaultDir = File(root, VAULT_FOLDER)
@@ -54,6 +42,7 @@ class VaultManager {
         }
     }
 
+    /*
     // Valida que la estructura mínima del vault sea correcta.
     //
     // Para considerarse válida debe existir:
@@ -76,4 +65,5 @@ class VaultManager {
                 imagesDir.exists() &&
                 imagesDir.isDirectory
     }
+    */
 }

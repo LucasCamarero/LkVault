@@ -5,11 +5,9 @@ import android.os.Environment
 import android.os.storage.StorageManager
 import java.io.File
 
+// HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
 // Objeto singleton que contiene utilidades relacionadas
-// con la detección y validación de dispositivos externos.
-//
-// En este diseño, un dispositivo solo se considera válido
-// si contiene explícitamente la carpeta raíz del vault.
+// con la detección y validación de USB.
 object UsbUtils {
 
     private const val VAULT_FOLDER_NAME = "LkVault"
@@ -25,9 +23,7 @@ object UsbUtils {
         return root != null
     }
 
-    // Devuelve el directorio raíz del volumen externo válido.
-    // Si no existe ninguno que cumpla las condiciones,
-    // devuelve null.
+    // Devuelve el directorio raíz del USB o null
     fun getValidExternalRoot(context: Context): File? {
 
         // Se obtiene el servicio del sistema encargado de gestionar
@@ -68,8 +64,6 @@ object UsbUtils {
             }
         }
 
-        // Si ningún volumen cumple las condiciones,
-        // no hay dispositivo externo válido conectado
         return null
     }
 }

@@ -7,31 +7,21 @@ import com.lucascamarero.lkvault.security.VaultManager
 import com.lucascamarero.lkvault.utils.UsbMonitor
 import com.lucascamarero.lkvault.utils.UsbUtils
 
-// ViewModel encargado de exponer a la UI el estado del
-// dispositivo externo válido (USB que contiene la carpeta LkVault).
-//
-// Forma parte de la arquitectura MVVM:
-//
-// - UsbMonitor → Detecta cambios físicos del sistema
-// - UsbUtils → Valida si el dispositivo cumple los requisitos
-// - VaultManager → Gestiona la estructura interna del vault
-// - UsbViewModel → Orquesta y mantiene estado observable
-// - UI (Compose) → Reacciona automáticamente a los cambios
+// HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
+// ViewModel encargado del USB que contiene la carpeta LkVault
 class UsbViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Estado observable por Compose.
-    // true  → Existe USB válido con carpeta LkVault
-    // false → No existe USB válido
+    // Estado observable por Compose de USB válido con carpeta LkVault
     var isUsbConnected = mutableStateOf(false)
         private set
 
     // Gestor de la estructura interna del vault
     private val vaultManager = VaultManager()
 
-    // Instancia de UsbMonitor.
-    // Se utiliza el Application context para evitar fugas de memoria.
+    // Instancia de UsbMonitor. Se utiliza el Application context para evitar fugas de memoria.
     private val monitor = UsbMonitor(application) { isValidDevice ->
 
+        // Si existe un dispositivo USB
         if (isValidDevice) {
 
             // Obtenemos la raíz del volumen válido
@@ -47,16 +37,16 @@ class UsbViewModel(application: Application) : AndroidViewModel(application) {
         isUsbConnected.value = isValidDevice
     }
 
-    // Se ejecuta cuando el ViewModel es creado.
-    // Inicia la monitorización del almacenamiento externo.
+    // Inicialización del ViewModel
     init {
+        // Inicia la monitorización del almacenamiento externo
         monitor.start()
     }
 
-    // Se ejecuta cuando el ViewModel se destruye.
     // Detiene la monitorización para evitar fugas de memoria.
     override fun onCleared() {
         monitor.stop()
+        // Se ejecuta cuando el ViewModel se destruye.
         super.onCleared()
     }
 }

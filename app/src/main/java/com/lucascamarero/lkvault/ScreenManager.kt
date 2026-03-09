@@ -24,12 +24,11 @@ import com.lucascamarero.lkvault.screens.PasswordScreen
 import com.lucascamarero.lkvault.ui.theme.Typography2
 import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
 import com.lucascamarero.lkvault.viewmodels.UsbViewModel
-import com.lucascamarero.lkvault.R
 
-// Composable principal encargado de gestionar:
-// - Estado del USB
-// - Navegación entre pantallas
-// - Barras superior e inferior
+// HU-4: SCREEN MANAGER: gestiona
+// - el estado del USB
+// - la navegación entre pantallas
+// - las barras superior e inferior
 @Composable
 fun ScreenManager(languageViewModel: LanguageViewModel) {
 
@@ -59,7 +58,6 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
             // Si no hay USB válido, se bloquea la aplicación
             if (!usbConnected) {
 
@@ -87,9 +85,8 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                     }
                 }
 
+            // Navegación normal cuando el USB está conectado
             } else {
-
-                // Navegación normal cuando el USB está conectado
                 NavHost(
                     navController = navController,
                     startDestination = "password"
@@ -110,10 +107,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     }
 }
 
-// Barra superior con:
-// - Nombre de la aplicación
-// - Versión
-// - Selector de idioma
+// Barra superior
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(languageViewModel: LanguageViewModel) {
@@ -124,6 +118,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     // Controla la apertura del menú desplegable de idioma
     var expanded by remember { mutableStateOf(false) }
 
+    // Controla el idioma seleccionado en la app
     val currentLanguage = languageViewModel.currentLanguage
 
     TopAppBar(
@@ -208,8 +203,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     )
 }
 
-// Barra de navegación inferior que permite cambiar
-// entre pantalla de contraseñas e imágenes.
+// Barra inferior
 @Composable
 fun BarraInferior(navController: NavHostController) {
 

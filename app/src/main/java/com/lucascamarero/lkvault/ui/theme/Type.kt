@@ -8,6 +8,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.lucascamarero.lkvault.R
 
+// HU-2: CONFIGURACIÓN DE TEMA Y DISEÑO BASE
+
 // Roboto para texto en general
 val Typography = Typography(
     titleLarge = TextStyle(

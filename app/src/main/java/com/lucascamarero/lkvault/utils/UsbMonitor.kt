@@ -5,22 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 
-// Clase encargada de monitorizar en tiempo real
-// los cambios en dispositivos de almacenamiento externo.
-//
-// Su responsabilidad NO es decidir si el dispositivo es válido,
-// sino detectar cambios del sistema y notificar el nuevo estado.
-//
-// La validación estricta del dispositivo (existencia de LkVault)
-// se delega a UsbUtils.
+// HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
+// Clase encargada de monitorizar en tiempo real  los cambios en USB
 class UsbMonitor(
 
-    // Contexto necesario para registrar el BroadcastReceiver.
-    // Se recomienda usar Application context para evitar fugas.
     private val context: Context,
 
-    // Callback que comunica a la capa superior (ViewModel)
-    // si existe o no un dispositivo externo válido.
+    // Callback que comunica al ViewModel si existe o no un USB
     private val onUsbStateChanged: (Boolean) -> Unit
 ) {
 
@@ -69,11 +60,7 @@ class UsbMonitor(
         onUsbStateChanged(isValid)
     }
 
-    // Detiene la monitorización.
-    // Es fundamental llamarlo (por ejemplo, en onCleared del ViewModel)
-    // para evitar:
-    // - Fugas de memoria
-    // - Receivers registrados indefinidamente
+    // Detiene la monitorización
     fun stop() {
         context.unregisterReceiver(receiver)
     }

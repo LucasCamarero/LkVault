@@ -2,6 +2,7 @@ package com.lucascamarero.lkvault.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// HU-2: CONFIGURACIÓN DE TEMA Y DISEÑO BASE
 val primaryLight = Color(0xFF10395D)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFF2C5075)

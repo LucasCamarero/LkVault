@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 
+// Pantalla de gestión de contraseñas
 @Composable
 fun PasswordScreen(navController: NavController) {
 
@@ -27,11 +28,13 @@ fun PasswordScreen(navController: NavController) {
         verticalArrangement = Arrangement.Top
     ) {
         item {
+
             Text(
                 text = stringResource(id = R.string.titulo_con),
                 color = MaterialTheme.colorScheme.primaryContainer,
                 style = MaterialTheme.typography.titleSmall
             )
+
         }
     }
 }

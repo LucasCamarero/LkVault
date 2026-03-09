@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.ui.theme.Typography2
 
-//Pantalla de presentación (Splash Screen)
+// HU-3: SPLASH SCREEN
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
 
@@ -40,7 +40,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 animationSpec = tween(durationMillis = 1200)
             )
         }
-        // Animación de pequeño → muy grande (zoom inicial)
+        // Animación de pequeño a muy grande (zoom inicial)
         scale.animateTo(
             2.1f,
             animationSpec = tween(
@@ -50,7 +50,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
         )
         // Pausa para que el logo grande se quede visible un momento
         delay(400)
-        // Animación de grande → tamaño normal
+        // Animación de grande a tamaño normal
         scale.animateTo(
             0.9f,
             animationSpec = tween(
@@ -60,7 +60,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
         )
         // Tiempo extra antes de pasar a la siguiente pantalla
         delay(1300)
-        // Avisamos a quien use este Splash que ya puede cambiar de pantalla
+        // Avisamos en MainActivity que ya puede cambiar de pantalla
         onTimeout()
     }
 
