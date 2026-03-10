@@ -4,7 +4,7 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
 import java.security.SecureRandom
 
-// HU-10: GENERACIÓN DE MASTER KEY ALEATORIA (256 BITS)
+// HU-10: IMPLEMENTACIÓN DE DERIVACIÓN DE CLAVE CON ARGON2ID
 class KeyDerivation {
 
     private companion object {

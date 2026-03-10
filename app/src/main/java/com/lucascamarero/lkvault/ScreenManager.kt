@@ -233,8 +233,8 @@ fun BarraInferior(navController: NavHostController) {
                 }
             },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.background,
-                unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.background,
                 indicatorColor = Color.Transparent
             )
         )
@@ -257,8 +257,8 @@ fun BarraInferior(navController: NavHostController) {
                 }
             },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.background,
-                unselectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.background,
                 indicatorColor = Color.Transparent
             )
         )
