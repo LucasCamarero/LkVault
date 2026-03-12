@@ -8,18 +8,23 @@ import java.security.SecureRandom
 class KeyDerivation {
 
     private companion object {
+
         // Número de iteraciones del algoritmo Argon2.
         // Incrementa el coste computacional del cálculo de la clave derivada
         const val ITERATIONS = 3
+
         // Memoria utilizada por Argon2 en kilobytes.
         // 65536 KB = 64 MB, lo que dificulta ataques mediante GPU
         const val MEMORY_KB = 65536
+
         // Nivel de paralelismo del algoritmo.
         // Define el número de hilos utilizados durante la derivación
         const val PARALLELISM = 1
+
         // Longitud de la clave derivada en bytes.
         // 32 bytes = 256 bits, tamaño adecuado para AES-256
         const val OUTPUT_LENGTH = 32
+
         // Tamaño del salt aleatorio utilizado en la derivación
         const val SALT_LENGTH = 16
     }

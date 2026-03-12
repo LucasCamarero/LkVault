@@ -7,6 +7,7 @@ import java.security.SecureRandom
 class MasterKeyGenerator {
 
     private companion object {
+
         // Tamaño de la clave en bytes. 32 bytes = 256 bits, tamaño requerido para AES-256.
         const val KEY_SIZE_BYTES = 32
     }
