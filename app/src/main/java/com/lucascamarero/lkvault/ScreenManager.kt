@@ -20,10 +20,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.lucascamarero.lkvault.models.AppLanguage
 import com.lucascamarero.lkvault.screens.ImageScreen
+import com.lucascamarero.lkvault.screens.MasterPasswordScreen
 import com.lucascamarero.lkvault.screens.PasswordScreen
 import com.lucascamarero.lkvault.ui.theme.Typography2
 import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
 import com.lucascamarero.lkvault.viewmodels.UsbViewModel
+import android.content.Context
+import com.lucascamarero.lkvault.utils.UsbStorageManager
+import com.lucascamarero.lkvault.viewmodels.VaultViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 // HU-4: SCREEN MANAGER: gestiona
 // - el estado del USB
@@ -37,7 +42,36 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     // ViewModel que expone el estado del USB
     val usbViewModel: UsbViewModel = viewModel()
+    // Estado observable que indica si existe un USB válido conectado
     val usbConnected = usbViewModel.isUsbConnected.value
+
+    // Obtiene el ViewModel encargado de gestionar el estado del vault.
+    val vaultViewModel: VaultViewModel = viewModel()
+
+    // LaunchedEffect se ejecuta cada vez que cambia el valor de usbConnected.
+    LaunchedEffect(usbConnected) {
+
+        // Si el USB está conectado se vuelve a comprobar si el vault ya está inicializado.
+        if (usbConnected) {
+            vaultViewModel.checkVault()
+        }
+    }
+
+    // Estado observable que indica si el vault ya está inicializado.
+    val vaultInitialized = vaultViewModel.vaultInitialized.value
+
+    // Obtiene el contexto actual de la aplicación dentro de Compose.
+    val context = LocalContext.current
+
+    // Instancia del gestor encargado de interactuar con el almacenamiento USB
+    val storageManager = UsbStorageManager(context)
+
+    // Acceso a las SharedPreferences donde se guarda la URI del USB
+    val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+
+    // Recupera la URI almacenada del USB.
+    // Si es null significa que todavía no se ha concedido permiso al almacenamiento.
+    val uriString = prefs.getString("usb_uri", null)
 
     Scaffold(
         // Barra superior siempre visible
@@ -85,12 +119,18 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                     }
                 }
 
-            // Navegación normal cuando el USB está conectado
+            // Navegación cuando el USB está conectado
             } else {
                 NavHost(
                     navController = navController,
-                    startDestination = "password"
+                    startDestination =
+                        if (vaultInitialized) "password"
+                        else "masterPassword"
                 ) {
+
+                    composable("masterPassword") {
+                        MasterPasswordScreen(navController)
+                    }
 
                     // Pantalla de gestión de contraseñas
                     composable("password") {

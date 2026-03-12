@@ -1,6 +1,8 @@
 package com.lucascamarero.lkvault.security
 
 import java.io.File
+import java.io.FileOutputStream
+import android.util.Log
 
 // HU-7: ESTRUCTURA INTERNA DE ALMACENAMIENTO EN USB
 // Gestiona la estructura del vault dentro del dispositivo USB.
@@ -25,40 +27,17 @@ class VaultManager {
     fun createStructureIfNeeded(root: File) {
 
         val vaultDir = File(root, VAULT_FOLDER)
-
-        // Si no existe la carpeta raíz del vault, no hacemos nada
         if (!vaultDir.exists()) return
 
         val passwordsDir = File(vaultDir, PASSWORDS_FOLDER)
         val imagesDir = File(vaultDir, IMAGES_FOLDER)
 
-        val configFile = File(vaultDir, CONFIG_FILE)
-        val masterKeyEncFile = File(vaultDir, MASTERKEY_ENC_FILE)
-        val masterKeyShareFile = File(vaultDir, MASTERKEY_SHARE_FILE)
-
-        // Crear carpeta passwords si no existe
         if (!passwordsDir.exists()) {
-            passwordsDir.mkdir()
+            passwordsDir.mkdirs()
         }
 
-        // Crear carpeta images si no existe
         if (!imagesDir.exists()) {
-            imagesDir.mkdir()
-        }
-
-        // Crear archivo vault.config si no existe
-        if (!configFile.exists()) {
-            configFile.createNewFile()
-        }
-
-        // Crear archivo masterkey.enc si no existe
-        if (!masterKeyEncFile.exists()) {
-            masterKeyEncFile.createNewFile()
-        }
-
-        // Crear archivo masterkey.share si no existe
-        if (!masterKeyShareFile.exists()) {
-            masterKeyShareFile.createNewFile()
+            imagesDir.mkdirs()
         }
     }
 }

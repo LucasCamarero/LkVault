@@ -3,6 +3,9 @@
     <string name="app_name">LkVault</string>
     <string name="usb1">USB desconectado.</string>
     <string name="usb2">Conecte el dispositivo para continuar.</string>
+    <!-- Master Password -->
+    <string name="vault">Selecciona tu unidad USB.</string>
+    <string name="boton_vault">Seleccionar</string>
     <!-- Contraseñas -->
     <string name="titulo_con">Contraseñas</string>
     <!-- Imágenes -->
