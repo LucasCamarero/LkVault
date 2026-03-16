@@ -16,21 +16,21 @@ val Typography = Typography(
         fontFamily = FontFamily(Font(R.font.roboto_bold)),
         fontWeight = FontWeight.Normal,
         fontSize = 36.sp,
-        lineHeight = 28.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily(Font(R.font.roboto_bold)),
         fontWeight = FontWeight.Normal,
         fontSize = 32.sp,
-        lineHeight = 28.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     titleSmall = TextStyle(
         fontFamily = FontFamily(Font(R.font.roboto_bold)),
         fontWeight = FontWeight.Normal,
         fontSize = 28.sp,
-        lineHeight = 28.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     bodyLarge = TextStyle(

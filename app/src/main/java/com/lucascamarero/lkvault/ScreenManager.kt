@@ -29,6 +29,7 @@ import android.content.Context
 import com.lucascamarero.lkvault.utils.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.VaultViewModel
 import androidx.compose.runtime.LaunchedEffect
+import com.lucascamarero.lkvault.screens.LoginScreen
 
 // HU-4: SCREEN MANAGER: gestiona
 // - el estado del USB
@@ -59,6 +60,16 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     // Estado observable que indica si el vault ya está inicializado.
     val vaultInitialized = vaultViewModel.vaultInitialized.value
+
+    // LaunchedEffect se ejecuta cada vez que cambia el valor de vaultInitialized.
+    LaunchedEffect(vaultInitialized) {
+
+        if (vaultInitialized) {
+            navController.navigate("login") {
+                popUpTo("masterPassword") { inclusive = true }
+            }
+        }
+    }
 
     // Obtiene el contexto actual de la aplicación dentro de Compose.
     val context = LocalContext.current
@@ -124,12 +135,16 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                 NavHost(
                     navController = navController,
                     startDestination =
-                        if (vaultInitialized) "password"
+                        if (vaultInitialized) "login"
                         else "masterPassword"
                 ) {
 
                     composable("masterPassword") {
                         MasterPasswordScreen(navController)
+                    }
+
+                    composable("login") {
+                        LoginScreen(navController)
                     }
 
                     // Pantalla de gestión de contraseñas

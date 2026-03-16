@@ -4,8 +4,16 @@
     <string name="usb1">USB desconectado.</string>
     <string name="usb2">Conecte el dispositivo para continuar.</string>
     <!-- Master Password -->
-    <string name="vault">Selecciona tu unidad USB.</string>
+    <string name="vault1">Crea tu contraseña maestra</string>
+    <string name="vault2">y selecciona la unidad USB.</string>
     <string name="boton_vault">Seleccionar</string>
+    <string name="maestra">Contraseña maestra</string>
+    <string name="confirmacion_maestra">Confirmar contraseña</string>
+    <string name="error_maestra">Las contraseñas no coinciden</string>
+    <!-- Login Screen -->
+    <string name="login">Introduce tu contraseña maestra</string>
+    <string name="boton_login">Desbloquear</string>
+    <string name="error_login">Contraseña incorrecta. Intentos restantes:</string>
     <!-- Contraseñas -->
     <string name="titulo_con">Contraseñas</string>
     <!-- Imágenes -->
