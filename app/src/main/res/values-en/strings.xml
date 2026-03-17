@@ -10,6 +10,9 @@
     <string name="maestra">Master Password</string>
     <string name="confirmacion_maestra">Confirm password</string>
     <string name="error_maestra">Passwords do not match</string>
+    <string name="email_text">Enter your email to receive the Recovery Key</string>
+    <string name="email_button">Send Recovery Key</string>
+    <string name="email_button2">Continue</string>
     <!-- Login Screen -->
     <string name="login">Introduce your master password</string>
     <string name="boton_login">Unlock</string>

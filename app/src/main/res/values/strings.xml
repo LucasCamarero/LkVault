@@ -10,6 +10,9 @@
     <string name="maestra">Contraseña maestra</string>
     <string name="confirmacion_maestra">Confirmar contraseña</string>
     <string name="error_maestra">Las contraseñas no coinciden</string>
+    <string name="email_text">Introduce tu email para recibir la Recovery Key</string>
+    <string name="email_button">Enviar Recovery Key</string>
+    <string name="email_button2">Continuar</string>
     <!-- Login Screen -->
     <string name="login">Introduce tu contraseña maestra</string>
     <string name="boton_login">Desbloquear</string>

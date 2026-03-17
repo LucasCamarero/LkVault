@@ -3,15 +3,20 @@ package com.lucascamarero.lkvault.security
 import android.content.Context
 
 // HU-12: IMPLEMENTACIÓN DE SECRET SPLITTING
+// HU-13: INTEGRACIÓN CON ANDROID KEYSTORE
+// HU-14: GENERACIÓN DE RECOVERY KEY
+//
 // Esta clase centraliza las operaciones criptográficas necesarias
 // para inicializar el vault en su primer uso.
 //
-// Su responsabilidad principal es:
+// Responsabilidades:
 // 1. Generar la Master Key del vault.
 // 2. Generar una clave auxiliar.
 // 3. Dividir la clave auxiliar mediante secret splitting (2-de-2).
-// 4. Almacenar una share en el dispositivo.
-// 5. Proteger criptográficamente la clave auxiliar con la clave derivada de la contraseña.
+// 4. Almacenar la share del dispositivo protegida con Android Keystore.
+// 5. Proteger la clave auxiliar con la clave derivada de la contraseña.
+// 6. Proteger la Master Key mediante envelope encryption.
+// 7. Generar una Recovery Key para restaurar el acceso si se pierde el dispositivo.
 class VaultCryptoManager(private val context: Context) {
 
     // Generador de la Master Key principal del vault.
@@ -24,47 +29,82 @@ class VaultCryptoManager(private val context: Context) {
     private val splitter = SecretSplitter()
 
     // Encargado de almacenar la share correspondiente al dispositivo móvil.
+// Internamente utiliza Android Keystore para cifrarla.
     private val deviceStorage = DeviceShareStorage(context)
 
-    // Clase responsable de proteger (cifrar) la clave auxiliar usando la clave derivada de la contraseña.
+    // Clase responsable de cifrar y descifrar claves mediante AES-GCM.
     private val protector = MasterKeyProtector()
 
-    // Inicializa la estructura criptográfica del vault.
-    //
-    // passwordKey: clave derivada de la contraseña del usuario mediante Argon2id.
-    //
-    // Devuelve un Triple con:
-    // 1. masterKey   -> clave maestra del vault
-    // 2. encryptedAux -> clave auxiliar cifrada con passwordKey
-    // 3. shareUsb    -> parte del secreto que se almacenará en el USB
-    fun initializeVault(passwordKey: ByteArray): Triple<ByteArray, ByteArray, ByteArray> {
+    // Gestor encargado de generar la Recovery Key.
+    private val recoveryManager = RecoveryKeyManager()
 
-        // Se genera la Master Key aleatoria que se utilizará para cifrar
-        // todos los datos almacenados dentro del vault.
+    // Resultado de la inicialización criptográfica del vault.
+    data class VaultInitializationResult(
+
+        // Master Key cifrada mediante envelope encryption.
+        val encryptedMasterKey: ByteArray,
+
+        // Clave auxiliar cifrada con la clave derivada de la contraseña.
+        val encryptedAuxiliaryKey: ByteArray,
+
+        // Share del secreto que debe almacenarse en el USB.
+        val usbShare: ByteArray,
+
+        // Recovery Key que el usuario debe guardar para recuperar el acceso.
+        val recoveryKey: String
+    )
+
+    // Inicializa la estructura criptográfica del vault.
+//
+// passwordKey: clave derivada de la contraseña del usuario mediante Argon2id.
+//
+// Devuelve un objeto VaultInitializationResult con todos los componentes
+// necesarios para finalizar la inicialización del vault.
+    fun initializeVault(passwordKey: ByteArray): VaultInitializationResult {
+
+        // -------- Generación de Master Key --------
+
         val masterKey = masterKeyGenerator.generate()
 
-        // Se genera una clave auxiliar independiente.
+        // -------- Generación de clave auxiliar --------
+
         val auxiliaryKey = auxiliaryKeyGenerator.generate()
 
-        // La clave auxiliar se divide en dos partes mediante secret splitting.
+        // -------- Secret Splitting (2-de-2) --------
+
         val shares = splitter.split(auxiliaryKey)
 
-        // Share destinada a almacenarse en el USB.
         val shareUsb = shares.first
-
-        // Share destinada a almacenarse en el dispositivo móvil.
         val shareDevice = shares.second
 
-        // Se guarda la share del dispositivo en almacenamiento interno.
+        // -------- Almacenamiento de la share del dispositivo --------
+        // Esta share se almacena cifrada con una clave protegida
+        // por Android Keystore.
+
         deviceStorage.saveShare(shareDevice)
 
-        // La clave auxiliar se protege cifrándola con la clave derivada de la contraseña.
+        // -------- Protección de la clave auxiliar --------
+        // La auxiliaryKey se cifra con la clave derivada de la contraseña.
+
         val encryptedAux = protector.protect(auxiliaryKey, passwordKey)
 
-        // Se devuelve:
-        // - masterKey (para uso interno del sistema)
-        // - encryptedAux (se almacenará en el USB)
-        // - shareUsb (también se almacenará en el USB)
-        return Triple(masterKey, encryptedAux, shareUsb)
+        // -------- Envelope encryption de la Master Key --------
+        // La Master Key se cifra utilizando la auxiliaryKey.
+
+        val encryptedMasterKey = protector.protect(masterKey, auxiliaryKey)
+
+        // -------- Generación de Recovery Key --------
+        // Permite recuperar la share del dispositivo si se pierde el móvil.
+
+        val recoveryKey = recoveryManager.generateRecoveryKey(shareDevice)
+
+        // -------- Resultado final --------
+
+        return VaultInitializationResult(
+            encryptedMasterKey = encryptedMasterKey,
+            encryptedAuxiliaryKey = encryptedAux,
+            usbShare = shareUsb,
+            recoveryKey = recoveryKey
+        )
     }
 }

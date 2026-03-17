@@ -6,24 +6,28 @@ import com.lucascamarero.lkvault.utils.UsbStorageManager
 import java.io.File
 
 // HU-12: IMPLEMENTACIÓN DE SECRET SPLITTING
+//
 // Esta clase se encarga de realizar el proceso necesario para desbloquear el vault.
-// El proceso incluye:
+//
+// Flujo de desbloqueo:
 //
 // 1. Localizar el USB previamente autorizado.
 // 2. Leer la configuración criptográfica del vault.
 // 3. Derivar la clave desde la contraseña introducida.
-// 4. Recuperar la clave auxiliar cifrada.
+// 4. Recuperar la AuxiliaryKey cifrada.
 // 5. Recuperar las dos partes del secreto (USB + dispositivo).
-// 6. Reconstruir la clave auxiliar mediante secret splitting.
+// 6. Reconstruir la AuxiliaryKey mediante secret splitting.
 // 7. Verificar que la reconstrucción es válida.
+// 8. Descifrar la MasterKey mediante envelope encryption.
 //
-// Si todos los pasos son correctos se devuelve la clave auxiliar reconstruida.
+// Si todos los pasos son correctos se devuelve la MasterKey,
+// que será utilizada para cifrar y descifrar los datos del vault.
 class VaultUnlockManager(private val context: Context) {
 
     // Encargado de derivar claves desde la contraseña mediante Argon2id.
     private val keyDerivation = KeyDerivation()
 
-    // Clase responsable de cifrar y descifrar la clave auxiliar.
+    // Clase responsable de cifrar y descifrar claves mediante AES-GCM.
     private val protector = MasterKeyProtector()
 
     // Implementación del algoritmo de secret splitting 2-de-2.
@@ -36,8 +40,8 @@ class VaultUnlockManager(private val context: Context) {
     private val storageManager = UsbStorageManager(context)
 
     // Función principal encargada de desbloquear el vault.
-    // Recibe la contraseña introducida por el usuario y devuelve la clave auxiliar
-    // si el proceso de verificación es correcto.
+// Recibe la contraseña introducida por el usuario y devuelve la MasterKey
+// si el proceso de verificación es correcto.
     fun unlockVault(password: String): ByteArray? {
 
         // Recuperar URI persistente del USB desde SharedPreferences.
@@ -55,50 +59,37 @@ class VaultUnlockManager(private val context: Context) {
 
         // -------- Leer vault.config --------
 
-        // Se localiza el archivo de configuración dentro del vault.
         val configDoc = vaultDir.findFile("vault.config") ?: return null
 
-        // Se leen los bytes del archivo utilizando el ContentResolver.
         val configBytes = context.contentResolver
             .openInputStream(configDoc.uri)
             ?.readBytes() ?: return null
 
-        // Se crea un archivo temporal en la cache de la aplicación
-        // para poder reutilizar el method existente de carga.
         val tempConfig = File.createTempFile("vault", ".config", context.cacheDir)
 
-        // Se escriben los bytes del archivo en el archivo temporal.
         tempConfig.writeBytes(configBytes)
 
-        // Se carga la configuración criptográfica del vault.
         val config = VaultConfig.load(tempConfig)
 
-        // Eliminación del archivo temporal.
         tempConfig.delete()
 
         // -------- Derivar clave desde contraseña --------
 
-        // Se deriva una clave criptográfica a partir de la contraseña introducida
-        // utilizando los parámetros almacenados en vault.config.
         val derivedKey = keyDerivation.deriveKey(
             password.toCharArray(),
             config.salt
         )
 
-        // -------- Leer masterkey.enc --------
+        // -------- Leer auxiliary.enc --------
 
-        // Se localiza el archivo que contiene la clave auxiliar cifrada.
-        val encDoc = vaultDir.findFile("masterkey.enc") ?: return null
+        val auxDoc = vaultDir.findFile("auxiliary.enc") ?: return null
 
-        // Se leen los bytes del archivo.
         val encryptedAux = context.contentResolver
-            .openInputStream(encDoc.uri)
+            .openInputStream(auxDoc.uri)
             ?.readBytes() ?: return null
 
-        // -------- Descifrar clave auxiliar --------
+        // -------- Descifrar AuxiliaryKey --------
 
-        // Se intenta descifrar la clave auxiliar utilizando la clave derivada
-        // de la contraseña introducida.
         val auxiliaryKey = try {
 
             protector.recover(
@@ -108,30 +99,25 @@ class VaultUnlockManager(private val context: Context) {
 
         } catch (e: Exception) {
 
-            // Si el descifrado falla (por ejemplo contraseña incorrecta)
-            // se devuelve null.
+            // Contraseña incorrecta o datos corruptos
             return null
         }
 
         // -------- Leer share USB --------
 
-        // Se localiza el archivo que contiene la share almacenada en el USB.
         val shareDoc = vaultDir.findFile("masterkey.share") ?: return null
 
-        // Se leen los bytes de la share del USB.
         val shareUsb = context.contentResolver
             .openInputStream(shareDoc.uri)
             ?.readBytes() ?: return null
 
         // -------- Leer share del dispositivo --------
 
-        // Se recupera la share almacenada localmente en el dispositivo móvil.
         val shareDevice = deviceStorage.loadShare()
             ?: return null
 
-        // -------- Reconstrucción del secreto --------
+        // -------- Reconstrucción de AuxiliaryKey --------
 
-        // Se reconstruye la clave auxiliar mediante XOR de ambas shares.
         val reconstructed = splitter.combine(
             shareUsb,
             shareDevice
@@ -139,13 +125,35 @@ class VaultUnlockManager(private val context: Context) {
 
         // -------- Verificación --------
 
-        // Se comprueba que la clave reconstruida coincide con la clave auxiliar
-        // descifrada previamente.
         if (!auxiliaryKey.contentEquals(reconstructed)) {
             return null
         }
 
-        // Si el proceso ha sido correcto se devuelve la clave auxiliar válida.
-        return auxiliaryKey
+        // -------- Leer masterkey.enc --------
+
+        val masterDoc = vaultDir.findFile("masterkey.enc") ?: return null
+
+        val encryptedMasterKey = context.contentResolver
+            .openInputStream(masterDoc.uri)
+            ?.readBytes() ?: return null
+
+        // -------- Descifrar MasterKey --------
+
+        val masterKey = try {
+
+            protector.recover(
+                encryptedMasterKey,
+                auxiliaryKey
+            )
+
+        } catch (e: Exception) {
+
+            return null
+        }
+
+        // -------- Resultado final --------
+
+        return masterKey
     }
+
 }
