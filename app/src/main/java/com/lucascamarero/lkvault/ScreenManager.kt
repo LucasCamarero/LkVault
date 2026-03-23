@@ -1,5 +1,6 @@
 package com.lucascamarero.lkvault
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -19,52 +20,30 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.lucascamarero.lkvault.models.AppLanguage
-import com.lucascamarero.lkvault.screens.ImageScreen
-import com.lucascamarero.lkvault.screens.MasterPasswordScreen
-import com.lucascamarero.lkvault.screens.PasswordScreen
+import com.lucascamarero.lkvault.screens.*
 import com.lucascamarero.lkvault.ui.theme.Typography2
-import com.lucascamarero.lkvault.viewmodels.LanguageViewModel
-import com.lucascamarero.lkvault.viewmodels.UsbViewModel
-import android.content.Context
 import com.lucascamarero.lkvault.utils.UsbStorageManager
-import com.lucascamarero.lkvault.viewmodels.VaultViewModel
-import androidx.compose.runtime.LaunchedEffect
-import com.lucascamarero.lkvault.screens.LoginScreen
-import com.lucascamarero.lkvault.screens.RecoveryScreen
+import com.lucascamarero.lkvault.viewmodels.*
 
-// HU-4: SCREEN MANAGER: gestiona
-// - el estado del USB
-// - la navegación entre pantallas
-// - las barras superior e inferior
 @Composable
 fun ScreenManager(languageViewModel: LanguageViewModel) {
 
-    // Controlador de navegación para Compose Navigation
     val navController = rememberNavController()
 
-    // ViewModel que expone el estado del USB
     val usbViewModel: UsbViewModel = viewModel()
-    // Estado observable que indica si existe un USB válido conectado
     val usbConnected = usbViewModel.isUsbConnected.value
 
-    // Obtiene el ViewModel encargado de gestionar el estado del vault.
     val vaultViewModel: VaultViewModel = viewModel()
 
-    // LaunchedEffect se ejecuta cada vez que cambia el valor de usbConnected.
     LaunchedEffect(usbConnected) {
-
-        // Si el USB está conectado se vuelve a comprobar si el vault ya está inicializado.
         if (usbConnected) {
             vaultViewModel.checkVault()
         }
     }
 
-    // Estado observable que indica si el vault ya está inicializado.
     val vaultInitialized = vaultViewModel.vaultInitialized.value
 
-    // LaunchedEffect se ejecuta cada vez que cambia el valor de vaultInitialized.
     LaunchedEffect(vaultInitialized) {
-
         if (vaultInitialized) {
             navController.navigate("login") {
                 popUpTo("masterPassword") { inclusive = true }
@@ -72,42 +51,40 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
         }
     }
 
-    // Obtiene el contexto actual de la aplicación dentro de Compose.
     val context = LocalContext.current
-
-    // Instancia del gestor encargado de interactuar con el almacenamiento USB
     val storageManager = UsbStorageManager(context)
-
-    // Acceso a las SharedPreferences donde se guarda la URI del USB
     val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
-
-    // Recupera la URI almacenada del USB.
-    // Si es null significa que todavía no se ha concedido permiso al almacenamiento.
     val uriString = prefs.getString("usb_uri", null)
 
-    Scaffold(
-        // Barra superior siempre visible
-        topBar = { BarraSuperior(languageViewModel) },
+    // 🔹 Ruta actual
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-        // Barra inferior solo visible si el USB es válido
+    // 🔹 Control de visibilidad de la bottom bar
+    val showBottomBar = usbConnected && currentRoute !in listOf(
+        "masterPassword",
+        "login",
+        "recovery"
+    )
+
+    Scaffold(
+        topBar = { BarraSuperior(languageViewModel) },
         bottomBar = {
-            if (usbConnected) {
+            if (showBottomBar) {
                 BarraInferior(navController)
             }
         }
     ) { innerPadding ->
 
-        // Contenedor principal
         Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Si no hay USB válido, se bloquea la aplicación
+
             if (!usbConnected) {
 
-                // Pantalla informativa cuando no hay USB
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -131,13 +108,11 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                     }
                 }
 
-            // Navegación cuando el USB está conectado
             } else {
+
                 NavHost(
                     navController = navController,
-                    startDestination =
-                        if (vaultInitialized) "login"
-                        else "masterPassword"
+                    startDestination = if (vaultInitialized) "login" else "masterPassword"
                 ) {
 
                     composable("masterPassword") {
@@ -165,7 +140,6 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     }
 }
 
-// Barra superior
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(languageViewModel: LanguageViewModel) {
@@ -173,10 +147,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     val context = LocalContext.current
     val version = remember { getAppVersion(context) }
 
-    // Controla la apertura del menú desplegable de idioma
     var expanded by remember { mutableStateOf(false) }
-
-    // Controla el idioma seleccionado en la app
     val currentLanguage = languageViewModel.currentLanguage
 
     TopAppBar(
@@ -186,10 +157,8 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
         ),
         title = {
             Row {
-                // Nombre de la app
                 Text("Lk Vault ", style = Typography2.titleSmall)
 
-                // Versión actual
                 Text(
                     text = "v$version",
                     style = MaterialTheme.typography.labelMedium,
@@ -198,10 +167,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
             }
         },
         actions = {
-
             Box {
-
-                // Botón que muestra la bandera actual
                 IconButton(onClick = { expanded = true }) {
                     Icon(
                         painter = painterResource(
@@ -216,7 +182,6 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                     )
                 }
 
-                // Menú desplegable para cambiar idioma
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -224,7 +189,6 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
 
-                    // Opción Español
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -240,7 +204,6 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
                         }
                     )
 
-                    // Opción Inglés
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -261,11 +224,9 @@ fun BarraSuperior(languageViewModel: LanguageViewModel) {
     )
 }
 
-// Barra inferior
 @Composable
 fun BarraInferior(navController: NavHostController) {
 
-    // Obtiene la ruta actual para marcar el item seleccionado
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -273,7 +234,6 @@ fun BarraInferior(navController: NavHostController) {
         containerColor = MaterialTheme.colorScheme.primaryContainer
     ) {
 
-        // Item de contraseñas
         NavigationBarItem(
             icon = {
                 Icon(
@@ -297,7 +257,6 @@ fun BarraInferior(navController: NavHostController) {
             )
         )
 
-        // Item de imágenes
         NavigationBarItem(
             icon = {
                 Icon(

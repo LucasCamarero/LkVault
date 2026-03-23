@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-/*
+
                     when {
                         // Pantalla de presentación
                         showSplash -> {
@@ -49,10 +49,7 @@ class MainActivity : AppCompatActivity() {
                                 languageViewModel = languageViewModel
                             )
                         }
-                    }*/
-                    ScreenManager(
-                        languageViewModel = languageViewModel
-                    )
+                    }
                 }
             }
         }
