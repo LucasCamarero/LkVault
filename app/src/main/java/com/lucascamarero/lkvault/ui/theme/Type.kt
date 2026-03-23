@@ -37,21 +37,21 @@ val Typography = Typography(
         fontFamily = FontFamily(Font(R.font.roboto_regular)),
         fontWeight = FontWeight.Normal,
         fontSize = 25.sp,
-        lineHeight = 25.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily(Font(R.font.roboto_regular)),
         fontWeight = FontWeight.Normal,
         fontSize = 22.sp,
-        lineHeight = 25.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.5.sp
     ),
     bodySmall = TextStyle(
         fontFamily = FontFamily(Font(R.font.roboto_regular)),
         fontWeight = FontWeight.Normal,
         fontSize = 19.sp,
-        lineHeight = 25.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.5.sp
     ),
     labelLarge = TextStyle(

@@ -1,6 +1,5 @@
 package com.lucascamarero.lkvault.screens
 
-import android.app.Activity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,33 +13,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
+import com.lucascamarero.lkvault.security.SecurityManager
 import com.lucascamarero.lkvault.security.VaultUnlockManager
 
-// HU-12: IMPLEMENTACIÓN DE SECRET SPLITTING
-// Esta pantalla permite al usuario introducir su contraseña maestra
-// para desbloquear el vault. La contraseña se utiliza para derivar
-// una clave mediante Argon2 y reconstruir el secreto necesario para
-// acceder a los datos cifrados.
 @Composable
 fun LoginScreen(
     navController: NavController
 ) {
 
-    // Obtiene el contexto actual de la aplicación dentro de Compose.
     val context = LocalContext.current
+    val securityManager = remember { SecurityManager(context) }
 
-    // Se obtiene la Activity actual para poder cerrar la aplicación
-    // en caso de que se exceda el número máximo de intentos.
-    val activity = context as Activity
-
-    // Estado que almacena la contraseña introducida por el usuario.
     val password = remember { mutableStateOf("") }
 
-    // Estado que indica si debe mostrarse el mensaje de error.
     var error by remember { mutableStateOf(false) }
 
-    // Número de intentos restantes permitidos antes de cerrar la app.
-    var attemptsLeft by remember { mutableStateOf(3) }
+    // 🔴 ESTADOS OBSERVABLES
+    var attemptsLeft by remember { mutableStateOf(securityManager.getAttemptsLeft()) }
+    var isBlocked by remember { mutableStateOf(securityManager.isBlocked()) }
+    var blockTime by remember { mutableStateOf(securityManager.getRemainingBlockTime()) }
 
     Column(
         modifier = Modifier
@@ -50,104 +41,138 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Título de la pantalla de desbloqueo del vault.
         Text(
             stringResource(id = R.string.login),
             color = MaterialTheme.colorScheme.primaryContainer,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Campo de texto para introducir la contraseña maestra.
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
             label = {
                 Text(
-                    text = stringResource(id = R.string.maestra),
+                    stringResource(id = R.string.maestra),
+                    color = MaterialTheme.colorScheme.primaryContainer,
                     style = MaterialTheme.typography.labelLarge
                 )
             },
-            textStyle = MaterialTheme.typography.bodyLarge,
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
             shape = RoundedCornerShape(26.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.secondary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Botón que inicia el proceso de desbloqueo del vault.
         Button(
-
             onClick = {
 
-                // Instancia del gestor encargado de reconstruir el secreto del vault.
-                val unlockManager = VaultUnlockManager(context)
+                if (securityManager.isBlocked()) {
+                    isBlocked = true
+                    blockTime = securityManager.getRemainingBlockTime()
+                    return@Button
+                }
 
-                // Se intenta desbloquear el vault utilizando la contraseña introducida.
+                val unlockManager = VaultUnlockManager(context)
                 val masterKey = unlockManager.unlockVault(password.value)
 
-                // Si el resultado no es null significa que la autenticación ha sido correcta.
                 if (masterKey != null) {
 
-                    // Se limpia el estado de error.
+                    securityManager.registerSuccess()
+
                     error = false
+                    attemptsLeft = securityManager.getAttemptsLeft()
+                    isBlocked = false
 
-                    // Navegación hacia la pantalla principal de contraseñas.
                     navController.navigate("password") {
-
-                        // Se elimina la pantalla de login del backstack
-                        // para evitar volver atrás después de autenticarse.
                         popUpTo("login") { inclusive = true }
                     }
 
                 } else {
 
-                    // Si la autenticación falla se reduce el número de intentos restantes.
-                    attemptsLeft--
+                    securityManager.registerFailure()
 
-                    // Si no quedan intentos se cierra completamente la aplicación.
-                    if (attemptsLeft <= 0) {
-                        activity.finish()
-                        return@Button
-                    }
-
-                    // Se activa el mensaje de error en pantalla.
                     error = true
+                    attemptsLeft = securityManager.getAttemptsLeft()
+                    isBlocked = securityManager.isBlocked()
+                    blockTime = securityManager.getRemainingBlockTime()
                 }
             },
-            enabled = password.value.isNotBlank(),
+            enabled = password.value.isNotBlank() && !isBlocked,
             modifier = Modifier.height(50.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 6.dp
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
             )
         ) {
             Text(
-                text = stringResource(id = R.string.boton_login),
-                style = MaterialTheme.typography.bodyMedium
+                stringResource(id = R.string.boton_login),
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
-        if (error) {
-
+        // -------- ERROR --------
+        if (error && !isBlocked) {
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 text = stringResource(id = R.string.error_login) + " $attemptsLeft",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // -------- BLOQUEO --------
+        if (isBlocked) {
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text(
+                text = stringResource(id = R.string.bloqueo) + " ${blockTime / 1000}s",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(150.dp))
+
+        Text(
+            stringResource(id = R.string.pregunta_olvido),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        //Spacer(modifier = Modifier.height(5.dp))
+
+        TextButton(
+            onClick = {
+                navController.navigate("recovery")
+            }
+        ) {
+            Text(
+                text = stringResource(id = R.string.recovery_key),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
     }

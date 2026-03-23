@@ -17,6 +17,14 @@
     <string name="login">Introduce tu contraseña maestra</string>
     <string name="boton_login">Desbloquear</string>
     <string name="error_login">Contraseña incorrecta. Intentos restantes:</string>
+    <string name="bloqueo">Teléfono bloqueado durante</string>
+    <string name="pregunta_olvido">¿Olvidaste la contraseña?</string>
+    <string name="recovery_key">Usar recovery key</string>
+    <!-- Recovery Screen -->
+    <string name="intro_recovery">Introduce tu recovery key</string>
+    <string name="rk">recovery key</string>
+    <string name="recuperar">Recuperar</string>
+    <string name="validez_rv">Recovery key no válida</string>
     <!-- Contraseñas -->
     <string name="titulo_con">Contraseñas</string>
     <!-- Imágenes -->

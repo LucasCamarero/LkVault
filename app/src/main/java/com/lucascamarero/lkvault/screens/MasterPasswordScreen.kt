@@ -13,15 +13,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
+import com.lucascamarero.lkvault.security.*
 import com.lucascamarero.lkvault.utils.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.VaultViewModel
-import com.lucascamarero.lkvault.security.*
 import java.io.File
 
 @Composable
@@ -43,13 +44,16 @@ fun MasterPasswordScreen(
 
     var recoveryKey by remember { mutableStateOf<String?>(null) }
     var email by remember { mutableStateOf("") }
+    var emailSent by remember { mutableStateOf(false) }
 
     val passwordsMatch =
         password.value == confirmPassword.value && password.value.isNotBlank()
 
     val showMismatch =
-        confirmPassword.value.isNotEmpty() && password.value != confirmPassword.value
+        confirmPassword.value.isNotEmpty() &&
+                password.value != confirmPassword.value
 
+    // Selector de USB
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
@@ -77,8 +81,6 @@ fun MasterPasswordScreen(
         }
     }
 
-    var emailSent by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,12 +89,15 @@ fun MasterPasswordScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // -------- CREACIÓN DEL VAULT --------
+
         if (recoveryKey == null) {
 
             Text(
-                stringResource(id = R.string.vault1) + " " + stringResource(id = R.string.vault2),
+                stringResource(id = R.string.vault1) + " " +
+                        stringResource(id = R.string.vault2),
                 color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -104,44 +109,47 @@ fun MasterPasswordScreen(
                 onValueChange = { password.value = it },
                 label = {
                     Text(
-                        text = stringResource(id = R.string.maestra),
+                        stringResource(id = R.string.maestra),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                textStyle = MaterialTheme.typography.bodyLarge,
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 shape = RoundedCornerShape(26.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             OutlinedTextField(
                 value = confirmPassword.value,
                 onValueChange = { confirmPassword.value = it },
                 label = {
                     Text(
-                        text = stringResource(id = R.string.confirmacion_maestra),
+                        stringResource(id = R.string.confirmacion_maestra),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                textStyle = MaterialTheme.typography.bodyLarge,
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 shape = RoundedCornerShape(26.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
             if (showMismatch) {
-
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
                     text = stringResource(id = R.string.error_maestra),
@@ -158,46 +166,55 @@ fun MasterPasswordScreen(
                 modifier = Modifier.height(50.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                 )
             ) {
                 Text(
-                     text = stringResource(id = R.string.boton_vault),
-                    style = MaterialTheme.typography.bodyMedium
+                    stringResource(id = R.string.boton_vault),
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
         } else {
 
+            // -------- MOSTRAR RECOVERY KEY --------
+
             Text(
                 text = stringResource(id = R.string.email_text),
                 color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
+                enabled = !emailSent,
                 label = {
                     Text(
                         "Email",
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         style = MaterialTheme.typography.labelLarge
-                    )},
-                textStyle = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                textStyle = MaterialTheme.typography.labelLarge,
                 singleLine = true,
                 shape = RoundedCornerShape(26.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = {
@@ -206,34 +223,32 @@ fun MasterPasswordScreen(
                         data = Uri.parse("mailto:")
                         putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
                         putExtra(Intent.EXTRA_SUBJECT, "LkVault Recovery Key")
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            "$recoveryKey"
-                        )
+                        putExtra(Intent.EXTRA_TEXT, recoveryKey)
                     }
 
                     context.startActivity(
                         Intent.createChooser(intent, "Enviar Recovery Key")
                     )
 
-                    emailSent = true;
-
+                    emailSent = true
                 },
                 enabled = email.isNotBlank() && !emailSent,
                 modifier = Modifier.height(50.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                 )
             ) {
                 Text(
                     stringResource(id = R.string.email_button),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             Button(
                 onClick = {
@@ -245,18 +260,19 @@ fun MasterPasswordScreen(
                 modifier = Modifier.height(50.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                 )
             ) {
                 Text(
                     stringResource(id = R.string.email_button2),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
     }
-
 }
 
 private fun initializeVault(
@@ -276,50 +292,49 @@ private fun initializeVault(
         salt
     )
 
-    val result = cryptoManager.initializeVault(derivedKey)
-
-    val encryptedMasterKey = result.encryptedMasterKey
-    val encryptedAux = result.encryptedAuxiliaryKey
-    val shareUsb = result.usbShare
-    val recoveryKey = result.recoveryKey
+    val result = cryptoManager.initializeVault(
+        derivedKey,
+        salt
+    )
 
     val config = VaultConfig.create(salt)
 
+    // -------- vault.config --------
     val configUri = storageManager.createFile(treeUri, "vault.config")
-        ?: return recoveryKey
+        ?: return result.recoveryKey
 
     storageManager.openOutput(configUri)?.use { output ->
 
         val tempFile = File.createTempFile("vault", ".config", context.cacheDir)
-
         config.save(tempFile)
 
         output.write(tempFile.readBytes())
-
         tempFile.delete()
     }
 
+    // -------- auxiliary.enc --------
     val auxUri = storageManager.createFile(treeUri, "auxiliary.enc")
-        ?: return recoveryKey
+        ?: return result.recoveryKey
 
     storageManager.openOutput(auxUri)?.use {
-        it.write(encryptedAux)
+        it.write(result.encryptedAuxiliaryKey)
     }
 
+    // -------- masterkey.enc --------
     val masterUri = storageManager.createFile(treeUri, "masterkey.enc")
-        ?: return recoveryKey
+        ?: return result.recoveryKey
 
     storageManager.openOutput(masterUri)?.use {
-        it.write(encryptedMasterKey)
+        it.write(result.encryptedMasterKey)
     }
 
+    // -------- share USB --------
     val shareUri = storageManager.createFile(treeUri, "masterkey.share")
-        ?: return recoveryKey
+        ?: return result.recoveryKey
 
     storageManager.openOutput(shareUri)?.use {
-        it.write(shareUsb)
+        it.write(result.usbShare)
     }
 
-    return recoveryKey
-
+    return result.recoveryKey
 }

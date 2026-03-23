@@ -30,6 +30,7 @@ import com.lucascamarero.lkvault.utils.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.VaultViewModel
 import androidx.compose.runtime.LaunchedEffect
 import com.lucascamarero.lkvault.screens.LoginScreen
+import com.lucascamarero.lkvault.screens.RecoveryScreen
 
 // HU-4: SCREEN MANAGER: gestiona
 // - el estado del USB
@@ -117,7 +118,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                         Text(
                             stringResource(id = R.string.usb1),
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.bodyLarge
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -125,7 +126,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                         Text(
                             stringResource(id = R.string.usb2),
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
@@ -147,12 +148,14 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                         LoginScreen(navController)
                     }
 
-                    // Pantalla de gestión de contraseñas
+                    composable("recovery") {
+                        RecoveryScreen(navController)
+                    }
+
                     composable("password") {
                         PasswordScreen(navController)
                     }
 
-                    // Pantalla de gestión de imágenes
                     composable("image") {
                         ImageScreen(navController)
                     }
