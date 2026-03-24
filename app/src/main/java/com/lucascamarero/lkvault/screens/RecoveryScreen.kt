@@ -51,6 +51,7 @@ fun RecoveryScreen(navController: NavController) {
                     style = MaterialTheme.typography.labelLarge
                 )
             },
+            textStyle = MaterialTheme.typography.labelLarge,
             singleLine = true,
             shape = RoundedCornerShape(26.dp),
             colors = OutlinedTextFieldDefaults.colors(

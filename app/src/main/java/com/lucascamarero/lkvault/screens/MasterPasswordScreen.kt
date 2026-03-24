@@ -114,6 +114,7 @@ fun MasterPasswordScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
+                textStyle = MaterialTheme.typography.labelLarge,
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 shape = RoundedCornerShape(26.dp),
@@ -137,6 +138,7 @@ fun MasterPasswordScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
+                textStyle = MaterialTheme.typography.labelLarge,
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 shape = RoundedCornerShape(26.dp),
@@ -287,10 +289,16 @@ private fun initializeVault(
 
     val salt = keyDerivation.generateSalt()
 
+    // 🔴 usar CharArray
+    val passwordChars = password.toCharArray()
+
     val derivedKey = keyDerivation.deriveKey(
-        password.toCharArray(),
+        passwordChars,
         salt
     )
+
+    // 🔴 limpiar password
+    passwordChars.fill('\u0000')
 
     val result = cryptoManager.initializeVault(
         derivedKey,
@@ -335,6 +343,9 @@ private fun initializeVault(
     storageManager.openOutput(shareUri)?.use {
         it.write(result.usbShare)
     }
+
+    // 🔴 limpiar derivedKey
+    derivedKey.fill(0)
 
     return result.recoveryKey
 }

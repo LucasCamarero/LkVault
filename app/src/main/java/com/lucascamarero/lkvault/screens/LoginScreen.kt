@@ -61,6 +61,7 @@ fun LoginScreen(
                     style = MaterialTheme.typography.labelLarge
                 )
             },
+            textStyle = MaterialTheme.typography.labelLarge,
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
             shape = RoundedCornerShape(26.dp),

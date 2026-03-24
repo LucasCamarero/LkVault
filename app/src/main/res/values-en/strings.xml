@@ -17,12 +17,12 @@
     <string name="login">Introduce your master password</string>
     <string name="boton_login">Unlock</string>
     <string name="error_login">Incorrect password. Attempts left:</string>
-    <string name="bloqueo">cell phone blocked during</string>
+    <string name="bloqueo">Cell phone blocked during</string>
     <string name="pregunta_olvido">Forgot your password?</string>
     <string name="recovery_key">Use recovery key</string>
     <!-- Recovery Screen -->
     <string name="intro_recovery">Introduce your recovery key</string>
-    <string name="rk">recovery key</string>
+    <string name="rk">Recovery key</string>
     <string name="recuperar">Recover</string>
     <string name="validez_rv">Invalid recovery key</string>
     <!-- Contraseñas -->

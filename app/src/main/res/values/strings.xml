@@ -22,7 +22,7 @@
     <string name="recovery_key">Usar recovery key</string>
     <!-- Recovery Screen -->
     <string name="intro_recovery">Introduce tu recovery key</string>
-    <string name="rk">recovery key</string>
+    <string name="rk">Recovery key</string>
     <string name="recuperar">Recuperar</string>
     <string name="validez_rv">Recovery key no válida</string>
     <!-- Contraseñas -->

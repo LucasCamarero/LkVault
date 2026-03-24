@@ -38,6 +38,10 @@ class VaultRecoveryManager(private val context: Context) {
         // -------- Reconstruir AuxiliaryKey --------
         val auxiliaryKey = splitter.combine(shareUsb, shareDevice)
 
+        // 🔴 limpieza shares (ya no necesarias)
+        shareUsb.fill(0)
+        shareDevice.fill(0)
+
         // -------- Leer masterkey.enc --------
         val masterDoc = vaultDir.findFile("masterkey.enc") ?: return null
         val encryptedMasterKey = context.contentResolver
@@ -48,10 +52,11 @@ class VaultRecoveryManager(private val context: Context) {
         val masterKey = try {
             protector.recover(encryptedMasterKey, auxiliaryKey)
         } catch (e: Exception) {
+            auxiliaryKey.fill(0)
             return null
         }
 
-        // Limpieza básica
+        // 🔴 limpieza auxiliaryKey
         auxiliaryKey.fill(0)
 
         return masterKey
