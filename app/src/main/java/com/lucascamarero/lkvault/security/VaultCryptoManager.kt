@@ -2,14 +2,8 @@ package com.lucascamarero.lkvault.security
 
 import android.content.Context
 
-// HU-12: SECRET SPLITTING
-// HU-13: ANDROID KEYSTORE
-// HU-14: RECOVERY KEY
-// HU-15: INICIALIZACIÓN COMPLETA DEL VAULT
-
 class VaultCryptoManager(private val context: Context) {
 
-    // Generadores y utilidades criptográficas
     private val masterKeyGenerator = MasterKeyGenerator()
     private val auxiliaryKeyGenerator = AuxiliaryKeyGenerator()
     private val splitter = SecretSplitter()
@@ -17,7 +11,6 @@ class VaultCryptoManager(private val context: Context) {
     private val protector = MasterKeyProtector()
     private val recoveryManager = RecoveryKeyManager()
 
-    // Resultado de la inicialización
     data class VaultInitializationResult(
         val encryptedMasterKey: ByteArray,
         val encryptedAuxiliaryKey: ByteArray,
@@ -25,17 +18,6 @@ class VaultCryptoManager(private val context: Context) {
         val recoveryKey: String
     )
 
-    /**
-     * Inicializa completamente el vault:
-     *
-     * 1. Genera MasterKey
-     * 2. Genera AuxiliaryKey
-     * 3. Divide la AuxiliaryKey (USB + dispositivo)
-     * 4. Guarda share del dispositivo en Keystore
-     * 5. Cifra AuxiliaryKey con password (derivedKey)
-     * 6. Cifra MasterKey con AuxiliaryKey
-     * 7. Genera Recovery Key completa
-     */
     fun initializeVault(
         passwordKey: ByteArray,
         salt: ByteArray
@@ -59,24 +41,21 @@ class VaultCryptoManager(private val context: Context) {
             passwordKey
         )
 
-        // -------- 6. Proteger MasterKey (envelope encryption) --------
+        // -------- 6. Proteger MasterKey --------
         val encryptedMasterKey = protector.protect(
             masterKey,
             auxiliaryKey
         )
 
-        // -------- 7. Generar Recovery Key --------
+        // -------- 7. Generar Recovery Key (NUEVO MODELO) --------
         val recoveryKey = recoveryManager.generateRecoveryKey(
-            salt = salt,
-            shareDevice = shareDevice,
-            encryptedAux = encryptedAux
+            shareDevice
         )
 
-        // -------- Limpieza básica de memoria (mejora HU18) --------
+        // -------- Limpieza --------
         auxiliaryKey.fill(0)
         masterKey.fill(0)
 
-        // -------- Resultado --------
         return VaultInitializationResult(
             encryptedMasterKey = encryptedMasterKey,
             encryptedAuxiliaryKey = encryptedAux,

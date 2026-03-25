@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
@@ -53,7 +54,6 @@ fun MasterPasswordScreen(
         confirmPassword.value.isNotEmpty() &&
                 password.value != confirmPassword.value
 
-    // Selector de USB
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
@@ -81,7 +81,7 @@ fun MasterPasswordScreen(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(30.dp),
@@ -89,189 +89,207 @@ fun MasterPasswordScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // -------- CREACIÓN DEL VAULT --------
+        item {
 
-        if (recoveryKey == null) {
+            if (recoveryKey == null) {
 
-            Text(
-                stringResource(id = R.string.vault1) + " " +
-                        stringResource(id = R.string.vault2),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            OutlinedTextField(
-                value = password.value,
-                onValueChange = { password.value = it },
-                label = {
-                    Text(
-                        stringResource(id = R.string.maestra),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                },
-                textStyle = MaterialTheme.typography.labelLarge,
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-                shape = RoundedCornerShape(26.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    cursorColor = MaterialTheme.colorScheme.primary
+                Text(
+                    stringResource(id = R.string.vault_text),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
-            )
 
-            Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
-            OutlinedTextField(
-                value = confirmPassword.value,
-                onValueChange = { confirmPassword.value = it },
-                label = {
-                    Text(
-                        stringResource(id = R.string.confirmacion_maestra),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        style = MaterialTheme.typography.labelLarge
+                OutlinedTextField(
+                    value = password.value,
+                    onValueChange = { password.value = it },
+                    label = {
+                        Text(
+                            stringResource(id = R.string.maestra),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelLarge,
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(26.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
-                },
-                textStyle = MaterialTheme.typography.labelLarge,
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-                shape = RoundedCornerShape(26.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    cursorColor = MaterialTheme.colorScheme.primary
                 )
-            )
 
-            if (showMismatch) {
                 Spacer(modifier = Modifier.height(28.dp))
 
-                Text(
-                    text = stringResource(id = R.string.error_maestra),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                OutlinedTextField(
+                    value = confirmPassword.value,
+                    onValueChange = { confirmPassword.value = it },
+                    label = {
+                        Text(
+                            stringResource(id = R.string.confirmacion_maestra),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelLarge,
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(26.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-            }
 
-            Spacer(modifier = Modifier.height(40.dp))
+                if (showMismatch) {
+                    Spacer(modifier = Modifier.height(28.dp))
 
-            Button(
-                onClick = { launcher.launch(null) },
-                enabled = passwordsMatch,
-                modifier = Modifier.height(50.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                )
-            ) {
-                Text(
-                    stringResource(id = R.string.boton_vault),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-        } else {
-
-            // -------- MOSTRAR RECOVERY KEY --------
-
-            Text(
-                text = stringResource(id = R.string.email_text),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                enabled = !emailSent,
-                label = {
                     Text(
-                        "Email",
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        style = MaterialTheme.typography.labelLarge
+                        text = stringResource(id = R.string.error_maestra),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
-                },
-                textStyle = MaterialTheme.typography.labelLarge,
-                singleLine = true,
-                shape = RoundedCornerShape(26.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                )
-            )
+                }
 
-            Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
-            Button(
-                onClick = {
-
-                    val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:")
-                        putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-                        putExtra(Intent.EXTRA_SUBJECT, "LkVault Recovery Key")
-                        putExtra(Intent.EXTRA_TEXT, recoveryKey)
-                    }
-
-                    context.startActivity(
-                        Intent.createChooser(intent, "Enviar Recovery Key")
+                Button(
+                    onClick = { launcher.launch(null) },
+                    enabled = passwordsMatch,
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                     )
+                ) {
+                    Text(
+                        stringResource(id = R.string.boton_vault),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
 
-                    emailSent = true
-                },
-                enabled = email.isNotBlank() && !emailSent,
-                modifier = Modifier.height(50.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                )
-            ) {
+                Spacer(modifier = Modifier.height(150.dp))
+
                 Text(
-                    stringResource(id = R.string.email_button),
-                    style = MaterialTheme.typography.bodySmall
+                    stringResource(id = R.string.pregunta_olvido),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
-            }
 
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Button(
-                onClick = {
-                    navController.navigate("password") {
-                        popUpTo("masterPassword") { inclusive = true }
+                TextButton(
+                    onClick = {
+                        navController.navigate("recovery")
                     }
-                },
-                enabled = emailSent,
-                modifier = Modifier.height(50.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                )
-            ) {
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.recovery_key),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+            } else {
+
                 Text(
-                    stringResource(id = R.string.email_button2),
-                    style = MaterialTheme.typography.bodySmall
+                    text = stringResource(id = R.string.email_text),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    enabled = !emailSent,
+                    label = {
+                        Text(
+                            "Email",
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelLarge,
+                    singleLine = true,
+                    shape = RoundedCornerShape(26.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Button(
+                    onClick = {
+
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:")
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                            putExtra(Intent.EXTRA_SUBJECT, "LkVault Recovery Key")
+                            putExtra(Intent.EXTRA_TEXT, recoveryKey)
+                        }
+
+                        context.startActivity(
+                            Intent.createChooser(intent, "Enviar Recovery Key")
+                        )
+
+                        emailSent = true
+                    },
+                    enabled = email.isNotBlank() && !emailSent,
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        stringResource(id = R.string.email_button),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate("password") {
+                            popUpTo("masterPassword") { inclusive = true }
+                        }
+                    },
+                    enabled = emailSent,
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        stringResource(id = R.string.email_button2),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }

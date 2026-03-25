@@ -1,6 +1,7 @@
 package com.lucascamarero.lkvault.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,12 +29,11 @@ fun LoginScreen(
 
     var error by remember { mutableStateOf(false) }
 
-    // 🔴 ESTADOS OBSERVABLES
     var attemptsLeft by remember { mutableStateOf(securityManager.getAttemptsLeft()) }
     var isBlocked by remember { mutableStateOf(securityManager.isBlocked()) }
     var blockTime by remember { mutableStateOf(securityManager.getRemainingBlockTime()) }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(30.dp),
@@ -41,140 +41,117 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(
-            stringResource(id = R.string.login),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
+        item {
 
-        Spacer(modifier = Modifier.height(40.dp))
-
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            label = {
-                Text(
-                    stringResource(id = R.string.maestra),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            },
-            textStyle = MaterialTheme.typography.labelLarge,
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            shape = RoundedCornerShape(26.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                cursorColor = MaterialTheme.colorScheme.primary
+            Text(
+                stringResource(id = R.string.login),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
-        )
 
-        Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-        Button(
-            onClick = {
+            OutlinedTextField(
+                value = password.value,
+                onValueChange = { password.value = it },
+                label = {
+                    Text(
+                        stringResource(id = R.string.maestra),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                textStyle = MaterialTheme.typography.labelLarge,
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                shape = RoundedCornerShape(26.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
+            )
 
-                if (securityManager.isBlocked()) {
-                    isBlocked = true
-                    blockTime = securityManager.getRemainingBlockTime()
-                    return@Button
-                }
+            Spacer(modifier = Modifier.height(40.dp))
 
-                val unlockManager = VaultUnlockManager(context)
-                val masterKey = unlockManager.unlockVault(password.value)
+            Button(
+                onClick = {
 
-                if (masterKey != null) {
-
-                    securityManager.registerSuccess()
-
-                    error = false
-                    attemptsLeft = securityManager.getAttemptsLeft()
-                    isBlocked = false
-
-                    navController.navigate("password") {
-                        popUpTo("login") { inclusive = true }
+                    if (securityManager.isBlocked()) {
+                        isBlocked = true
+                        blockTime = securityManager.getRemainingBlockTime()
+                        return@Button
                     }
 
-                } else {
+                    val unlockManager = VaultUnlockManager(context)
+                    val masterKey = unlockManager.unlockVault(password.value)
 
-                    securityManager.registerFailure()
+                    if (masterKey != null) {
 
-                    error = true
-                    attemptsLeft = securityManager.getAttemptsLeft()
-                    isBlocked = securityManager.isBlocked()
-                    blockTime = securityManager.getRemainingBlockTime()
-                }
-            },
-            enabled = password.value.isNotBlank() && !isBlocked,
-            modifier = Modifier.height(50.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-            )
-        ) {
-            Text(
-                stringResource(id = R.string.boton_login),
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
+                        securityManager.registerSuccess()
 
-        // -------- ERROR --------
-        if (error && !isBlocked) {
-            Spacer(modifier = Modifier.height(30.dp))
+                        error = false
+                        attemptsLeft = securityManager.getAttemptsLeft()
+                        isBlocked = false
 
-            Text(
-                text = stringResource(id = R.string.error_login) + " $attemptsLeft",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+                        navController.navigate("password") {
+                            popUpTo("login") { inclusive = true }
+                        }
 
-        // -------- BLOQUEO --------
-        if (isBlocked) {
-            Spacer(modifier = Modifier.height(30.dp))
+                    } else {
 
-            Text(
-                text = stringResource(id = R.string.bloqueo) + " ${blockTime / 1000}s",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+                        securityManager.registerFailure()
 
-        Spacer(modifier = Modifier.height(150.dp))
-
-        Text(
-            stringResource(id = R.string.pregunta_olvido),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-
-        //Spacer(modifier = Modifier.height(5.dp))
-
-        TextButton(
-            onClick = {
-                navController.navigate("recovery")
+                        error = true
+                        attemptsLeft = securityManager.getAttemptsLeft()
+                        isBlocked = securityManager.isBlocked()
+                        blockTime = securityManager.getRemainingBlockTime()
+                    }
+                },
+                enabled = password.value.isNotBlank() && !isBlocked,
+                modifier = Modifier.height(50.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                )
+            ) {
+                Text(
+                    stringResource(id = R.string.boton_login),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
-        ) {
-            Text(
-                text = stringResource(id = R.string.recovery_key),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
+
+            // -------- ERROR --------
+            if (error && !isBlocked) {
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Text(
+                    text = stringResource(id = R.string.error_login) + " $attemptsLeft",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            // -------- BLOQUEO --------
+            if (isBlocked) {
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Text(
+                    text = stringResource(id = R.string.bloqueo) + " ${blockTime / 1000}s",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

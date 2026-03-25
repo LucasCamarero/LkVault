@@ -4,8 +4,7 @@
     <string name="usb1">USB desconectado.</string>
     <string name="usb2">Conecte el dispositivo para continuar.</string>
     <!-- Master Password -->
-    <string name="vault1">Crea tu contraseña maestra</string>
-    <string name="vault2">y selecciona la unidad USB.</string>
+    <string name="vault_text">Si es tu primer uso, crea tu contraseña maestra y selecciona la unidad USB</string>
     <string name="boton_vault">Seleccionar</string>
     <string name="maestra">Contraseña maestra</string>
     <string name="confirmacion_maestra">Confirmar contraseña</string>
@@ -13,13 +12,17 @@
     <string name="email_text">Introduce tu email para recibir la Recovery Key</string>
     <string name="email_button">Enviar Recovery Key</string>
     <string name="email_button2">Continuar</string>
+    <string name="pregunta_olvido">¿Has REinstalado la app?</string>
+    <string name="recovery_key">Usar recovery key</string>
+    <string name="alert_mensaje">Borrar datos</string>
+    <string name="alert_pregunta">Esta acción ELIMINARÁ PERMANENTEMENTE los datos de la unidad USB. ¿Está seguro de que desea continuar?</string>
+    <string name="alert_boton_confirm">Confirmar</string>
+    <string name="alert_boton_cancel">Cancelar</string>
     <!-- Login Screen -->
     <string name="login">Introduce tu contraseña maestra</string>
     <string name="boton_login">Desbloquear</string>
     <string name="error_login">Contraseña incorrecta. Intentos restantes:</string>
-    <string name="bloqueo">Teléfono bloqueado durante</string>
-    <string name="pregunta_olvido">¿Olvidaste la contraseña?</string>
-    <string name="recovery_key">Usar recovery key</string>
+    <string name="bloqueo">App bloqueada durante</string>
     <!-- Recovery Screen -->
     <string name="intro_recovery">Introduce tu recovery key</string>
     <string name="rk">Recovery key</string>

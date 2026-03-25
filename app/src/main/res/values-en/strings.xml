@@ -4,8 +4,7 @@
     <string name="usb1">USB disconnected.</string>
     <string name="usb2">Connect the device to continue.</string>
     <!-- Master Password -->
-    <string name="vault1">Create your master password</string>
-    <string name="vault2">and select the USB drive.</string>
+    <string name="vault_text">If this is your first use, create your master password and select the USB drive.</string>
     <string name="boton_vault">Select</string>
     <string name="maestra">Master Password</string>
     <string name="confirmacion_maestra">Confirm password</string>
@@ -13,13 +12,17 @@
     <string name="email_text">Enter your email to receive the Recovery Key</string>
     <string name="email_button">Send Recovery Key</string>
     <string name="email_button2">Continue</string>
+    <string name="pregunta_olvido">Have you REinstalled the app?</string>
+    <string name="recovery_key">Use recovery key</string>
+    <string name="alert_mensaje">Delete data</string>
+    <string name="alert_pregunta">This action will permanently delete the data from the USB drive. Are you sure you want to continue?</string>
+    <string name="alert_boton_confirm">Confirm</string>
+    <string name="alert_boton_cancel">Cancel</string>
     <!-- Login Screen -->
     <string name="login">Introduce your master password</string>
     <string name="boton_login">Unlock</string>
     <string name="error_login">Incorrect password. Attempts left:</string>
-    <string name="bloqueo">Cell phone blocked during</string>
-    <string name="pregunta_olvido">Forgot your password?</string>
-    <string name="recovery_key">Use recovery key</string>
+    <string name="bloqueo">App blocked during</string>
     <!-- Recovery Screen -->
     <string name="intro_recovery">Introduce your recovery key</string>
     <string name="rk">Recovery key</string>

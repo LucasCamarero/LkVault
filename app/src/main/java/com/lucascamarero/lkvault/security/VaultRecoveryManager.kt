@@ -6,59 +6,39 @@ import com.lucascamarero.lkvault.utils.UsbStorageManager
 
 class VaultRecoveryManager(private val context: Context) {
 
+    private val recoveryManager = RecoveryKeyManager()
+    private val deviceStorage = DeviceShareStorage(context)
     private val splitter = SecretSplitter()
     private val protector = MasterKeyProtector()
-    private val recoveryManager = RecoveryKeyManager()
     private val storageManager = UsbStorageManager(context)
 
-    fun recoverVault(recoveryKey: String): ByteArray? {
+    private companion object {
+        const val KEY_SIZE = 32
+    }
 
-        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
-        val uriString = prefs.getString("usb_uri", null) ?: return null
-        val treeUri = Uri.parse(uriString)
+    fun restoreAccess(recoveryKey: String, treeUri: Uri): Boolean {
 
-        val vaultDir = storageManager.getVaultDirectory(treeUri) ?: return null
-
-        // -------- Parse Recovery Key --------
-        val recoveryData = try {
-            recoveryManager.parseRecoveryKey(recoveryKey)
+        val shareDevice = try {
+            recoveryManager.recoverDeviceShare(recoveryKey)
         } catch (e: Exception) {
-            return null
+            return false
         }
 
-        val shareDevice = recoveryData.shareDevice
-        val encryptedAux = recoveryData.encryptedAux
+        // Validación mínima
+        if (shareDevice.size != 32) {
+            return false
+        }
 
-        // -------- Leer share USB --------
-        val shareDoc = vaultDir.findFile("masterkey.share") ?: return null
-        val shareUsb = context.contentResolver
-            .openInputStream(shareDoc.uri)
-            ?.readBytes() ?: return null
-
-        // -------- Reconstruir AuxiliaryKey --------
-        val auxiliaryKey = splitter.combine(shareUsb, shareDevice)
-
-        // 🔴 limpieza shares (ya no necesarias)
-        shareUsb.fill(0)
+        // Guardar en Keystore
+        deviceStorage.saveShare(shareDevice)
         shareDevice.fill(0)
 
-        // -------- Leer masterkey.enc --------
-        val masterDoc = vaultDir.findFile("masterkey.enc") ?: return null
-        val encryptedMasterKey = context.contentResolver
-            .openInputStream(masterDoc.uri)
-            ?.readBytes() ?: return null
+        // Guardar USB
+        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString("usb_uri", treeUri.toString())
+            .apply()
 
-        // -------- Descifrar MasterKey --------
-        val masterKey = try {
-            protector.recover(encryptedMasterKey, auxiliaryKey)
-        } catch (e: Exception) {
-            auxiliaryKey.fill(0)
-            return null
-        }
-
-        // 🔴 limpieza auxiliaryKey
-        auxiliaryKey.fill(0)
-
-        return masterKey
+        return true
     }
 }
