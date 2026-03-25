@@ -23,24 +23,30 @@ import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.ui.theme.Typography2
 
 // HU-3: SPLASH SCREEN
+// Esta pantalla muestra una animación inicial al arrancar la aplicación.
+// Incluye animaciones de escala y opacidad sobre el logo y, tras completarse,
+// notifica al sistema para continuar con la navegación principal.
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
 
-    // Animación de escala (tamaño) del logo
+    // Animación de escala del logo (efecto zoom)
     val scale = remember { Animatable(0.1f) }
 
-    // Animación de opacidad (transparencia)
+    // Animación de opacidad (fade-in)
     val alpha = remember { Animatable(0f) }
 
+    // Lanzamiento de animaciones al entrar en composición
     LaunchedEffect(Unit) {
-        // Lanzamos la animación de fade-in en paralelo
+
+        // Animación de aparición (fade-in) en paralelo
         launch {
             alpha.animateTo(
                 1f,
                 animationSpec = tween(durationMillis = 1200)
             )
         }
-        // Animación de pequeño a muy grande (zoom inicial)
+
+        // Animación de zoom inicial
         scale.animateTo(
             2.1f,
             animationSpec = tween(
@@ -48,9 +54,11 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 easing = LinearOutSlowInEasing
             )
         )
-        // Pausa para que el logo grande se quede visible un momento
+
+        // Pausa breve con el logo ampliado
         delay(400)
-        // Animación de grande a tamaño normal
+
+        // Reducción a tamaño final
         scale.animateTo(
             0.9f,
             animationSpec = tween(
@@ -58,13 +66,15 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 easing = LinearOutSlowInEasing
             )
         )
-        // Tiempo extra antes de pasar a la siguiente pantalla
+
+        // Tiempo adicional antes de continuar
         delay(1300)
-        // Avisamos en MainActivity que ya puede cambiar de pantalla
+
+        // Se notifica que la splash ha finalizado
         onTimeout()
     }
 
-    // Contenedor
+    // Contenedor principal centrado
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -72,10 +82,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
 
-        // Contenido centrado en vertical
+        // Contenido vertical centrado
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            // Icono pequeño superior
+            // Icono superior (branding secundario)
             Image(
                 painter = painterResource(R.drawable.android),
                 contentDescription = "Android",
@@ -84,18 +94,18 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Logo principal con animaciones de escala y opacidad
+            // Logo principal con animaciones aplicadas
             Image(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .scale(scale.value)   // Se aplica la animación de tamaño
-                    .alpha(alpha.value)   // Se aplica la animación de transparencia
+                    .scale(scale.value)
+                    .alpha(alpha.value)
             )
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            // Nombre del autor
+            // Texto con nombre del autor
             Text(
                 text = "Lucas Camarero",
                 style = Typography2.bodyLarge,
@@ -105,7 +115,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Subtítulo
+            // Subtítulo profesional
             Text(
                 text = "Multiplatform Developer",
                 style = Typography2.bodySmall,

@@ -6,64 +6,67 @@ import android.os.storage.StorageManager
 import java.io.File
 
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
-// Objeto singleton que contiene utilidades relacionadas
-// con la detección y validación de USB.
+// Este objeto singleton proporciona utilidades para detectar y validar
+// la presencia de un dispositivo de almacenamiento externo (USB o SD).
+// Aplica criterios estrictos para garantizar que el dispositivo es válido
+// para operar con el vault (montado, removible y con estructura correcta).
 object UsbUtils {
 
+    // Nombre de la carpeta raíz del vault que debe existir en el USB
     private const val VAULT_FOLDER_NAME = "LkVault"
 
-    // Comprueba si existe un dispositivo externo válido.
-    // Para considerarse válido debe:
-    // 1. Ser un volumen removible (USB o SD).
-    // 2. Estar montado (MEDIA_MOUNTED).
-    // 3. Contener en su raíz la carpeta "LkVault".
+    // Comprueba si existe un dispositivo externo válido conectado
     fun isValidExternalDeviceConnected(context: Context): Boolean {
 
+        // Se intenta obtener un volumen válido
         val root = getValidExternalRoot(context)
+
+        // Si existe, el dispositivo es válido
         return root != null
     }
 
-    // Devuelve el directorio raíz del USB o null
+    // Devuelve el directorio raíz del dispositivo externo válido o null si no existe
     fun getValidExternalRoot(context: Context): File? {
 
-        // Se obtiene el servicio del sistema encargado de gestionar
-        // los volúmenes de almacenamiento del dispositivo.
+        // Se obtiene el servicio del sistema encargado de gestionar los volúmenes de almacenamiento
         val storageManager =
             context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
 
-        // Lista de todos los volúmenes disponibles en el sistema
+        // Se obtiene la lista de todos los volúmenes disponibles
         val volumes = storageManager.storageVolumes
 
-        // Recorremos cada volumen detectado
+        // Se recorren todos los volúmenes detectados
         for (volume in volumes) {
 
-            // Filtramos únicamente:
-            // - Volúmenes físicos removibles (USB o SD)
-            // - Que estén actualmente montados y accesibles
+            // Se filtran únicamente los volúmenes:
+            // - removibles (USB o SD)
+            // - que estén montados y accesibles
             if (volume.isRemovable &&
                 volume.state == Environment.MEDIA_MOUNTED
             ) {
 
-                // Obtenemos el directorio raíz del volumen
+                // Se obtiene el directorio raíz del volumen
                 val directory = volume.directory
 
                 if (directory != null) {
 
-                    // Construimos la referencia a la carpeta "LkVault"
+                    // Se construye la ruta a la carpeta "LkVault"
                     val lkVaultFolder = File(directory, VAULT_FOLDER_NAME)
 
-                    // Comprobamos:
-                    // - Que la carpeta exista
-                    // - Que realmente sea un directorio
+                    // Se comprueba que:
+                    // - la carpeta exista
+                    // - sea realmente un directorio
                     if (lkVaultFolder.exists() &&
                         lkVaultFolder.isDirectory
                     ) {
+                        // Si cumple las condiciones, se devuelve este volumen como válido
                         return directory
                     }
                 }
             }
         }
 
+        // Si ningún volumen cumple los requisitos, se devuelve null
         return null
     }
 }

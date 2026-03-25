@@ -29,16 +29,27 @@ import com.lucascamarero.lkvault.ui.theme.Typography2
 import com.lucascamarero.lkvault.utils.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.*
 
+// HU-4: IMPLEMENTACIÓN DE NAVEGACIÓN PRINCIPAL (TopBar + BottomBar)
+// HU-6: DETECCIÓN Y VALIDACIÓN DE USB
+// HU-7: CONTROL DEL ESTADO DEL VAULT
+// Este componente central gestiona:
+// - Navegación entre pantallas
+// - Estado del USB
+// - Estado de inicialización del vault
+// - Visibilidad de barras de navegación
 @Composable
 fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     val navController = rememberNavController()
 
+    // ViewModel que expone el estado del USB
     val usbViewModel: UsbViewModel = viewModel()
     val usbConnected = usbViewModel.isUsbConnected.value
 
+    // ViewModel que controla el estado del vault
     val vaultViewModel: VaultViewModel = viewModel()
 
+    // Cuando cambia el estado del USB, se vuelve a comprobar el vault
     LaunchedEffect(usbConnected) {
         if (usbConnected) {
             vaultViewModel.checkVault()
@@ -47,6 +58,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     val vaultInitialized = vaultViewModel.vaultInitialized.value
 
+    // Si el vault ya está inicializado, redirige automáticamente a login
     LaunchedEffect(vaultInitialized) {
         if (vaultInitialized) {
             navController.navigate("login") {
@@ -57,9 +69,11 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
     val context = LocalContext.current
 
+    // Obtiene la ruta actual de navegación
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Controla si se muestra la barra inferior
     val showBottomBar = usbConnected && currentRoute !in listOf(
         "masterPassword",
         "login",
@@ -67,7 +81,10 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     )
 
     Scaffold(
+        // Barra superior (idioma + reset)
         topBar = { BarraSuperior(languageViewModel, navController) },
+
+        // Barra inferior (navegación principal)
         bottomBar = {
             if (showBottomBar) {
                 BarraInferior(navController)
@@ -82,6 +99,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
+            // -------- CASO: USB NO CONECTADO --------
             if (!usbConnected) {
 
                 Box(
@@ -91,6 +109,8 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column {
+
+                        // Mensaje informando que se requiere USB
                         Text(
                             stringResource(id = R.string.usb1),
                             color = MaterialTheme.colorScheme.primaryContainer,
@@ -99,6 +119,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Mensaje adicional de instrucción
                         Text(
                             stringResource(id = R.string.usb2),
                             color = MaterialTheme.colorScheme.primaryContainer,
@@ -109,27 +130,33 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
             } else {
 
+                // -------- NAVEGACIÓN PRINCIPAL --------
                 NavHost(
                     navController = navController,
                     startDestination = if (vaultInitialized) "login" else "masterPassword"
                 ) {
 
+                    // Pantalla de creación de vault
                     composable("masterPassword") {
                         MasterPasswordScreen(navController)
                     }
 
+                    // Pantalla de login
                     composable("login") {
                         LoginScreen(navController)
                     }
 
+                    // Pantalla de recuperación
                     composable("recovery") {
                         RecoveryScreen(navController)
                     }
 
+                    // Pantalla de contraseñas
                     composable("password") {
                         PasswordScreen(navController)
                     }
 
+                    // Pantalla de imágenes
                     composable("image") {
                         ImageScreen(navController)
                     }
@@ -139,6 +166,11 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     }
 }
 
+// HU-4: BARRA SUPERIOR
+// Contiene:
+// - Nombre y versión de la app
+// - Botón de reset del vault
+// - Selector de idioma
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavController) {
@@ -146,7 +178,10 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
     val context = LocalContext.current
     val version = remember { getAppVersion(context) }
 
+    // Estado del dropdown de idioma
     var expanded by remember { mutableStateOf(false) }
+
+    // Estado del diálogo de confirmación de reset
     var showDialog by remember { mutableStateOf(false) }
 
     val currentLanguage = languageViewModel.currentLanguage
@@ -157,6 +192,8 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
             titleContentColor = MaterialTheme.colorScheme.secondaryContainer,
         ),
         title = {
+
+            // Título de la app + versión
             Row {
                 Text("Lk Vault ", style = Typography2.titleSmall)
 
@@ -169,7 +206,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
         },
         actions = {
 
-            // 🔴 BOTÓN RESET
+            // Botón reset
             IconButton(onClick = { showDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
@@ -178,7 +215,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
                 )
             }
 
-            // 🔴 SELECTOR IDIOMA
+            // Selector de idioma
             Box {
                 IconButton(onClick = { expanded = true }) {
                     Icon(
@@ -201,6 +238,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
 
+                    // Opción Español
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -216,6 +254,7 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
                         }
                     )
 
+                    // Opción Inglés
                     DropdownMenuItem(
                         text = {
                             Icon(
@@ -235,27 +274,34 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
         }
     )
 
-    // 🔴 DIÁLOGO DE CONFIRMACIÓN
+    // Diálogo de confirmación de reset
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
+
+            // Mensaje principal
             title = {
                 Text(stringResource(id = R.string.alert_mensaje),
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center)
             },
+
+            // Pregunta de confirmación
             text = {
                 Text(stringResource(id = R.string.alert_pregunta),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center)
             },
+
+            // Confirmar reset
             confirmButton = {
                 TextButton(
                     onClick = {
                         showDialog = false
                         resetVault(context)
+
                         navController.navigate("masterPassword") {
                             popUpTo(0)
                         }
@@ -267,6 +313,8 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
                         textAlign = TextAlign.Center)
                 }
             },
+
+            // Cancelar
             dismissButton = {
                 TextButton(
                     onClick = { showDialog = false }
@@ -281,6 +329,10 @@ fun BarraSuperior(languageViewModel: LanguageViewModel, navController: NavContro
     }
 }
 
+// HU-4: BARRA INFERIOR
+// Permite navegar entre:
+// - Contraseñas
+// - Imágenes
 @Composable
 fun BarraInferior(navController: NavHostController) {
 
@@ -291,6 +343,7 @@ fun BarraInferior(navController: NavHostController) {
         containerColor = MaterialTheme.colorScheme.primaryContainer
     ) {
 
+        // Botón sección contraseñas
         NavigationBarItem(
             icon = {
                 Icon(
@@ -314,6 +367,7 @@ fun BarraInferior(navController: NavHostController) {
             )
         )
 
+        // Botón sección imágenes
         NavigationBarItem(
             icon = {
                 Icon(
@@ -339,6 +393,11 @@ fun BarraInferior(navController: NavHostController) {
     }
 }
 
+// HU-7 + HU-15: RESET DEL VAULT
+// Elimina:
+// - Archivos del USB
+// - Share almacenada en el dispositivo
+// - Preferencias del USB
 fun resetVault(context: Context) {
 
     val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
@@ -348,15 +407,15 @@ fun resetVault(context: Context) {
     val storageManager = UsbStorageManager(context)
     val vaultDir = storageManager.getVaultDirectory(treeUri) ?: return
 
-    // 🔴 borrar contenido USB
+    // borrar contenido USB
     vaultDir.listFiles().forEach {
         it.delete()
     }
 
-    // 🔴 borrar share local
+    // borrar share local
     val devicePrefs = context.getSharedPreferences("device_share", Context.MODE_PRIVATE)
     devicePrefs.edit().clear().apply()
 
-    // 🔴 borrar referencia USB
+    // borrar referencia USB
     prefs.edit().clear().apply()
 }

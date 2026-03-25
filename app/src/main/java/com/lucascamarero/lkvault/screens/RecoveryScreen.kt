@@ -19,27 +19,38 @@ import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.security.VaultRecoveryManager
 
+// HU-14: GENERACIÓN Y GESTIÓN DE RECOVERY KEY
+// HU-16: RECUPERACIÓN DE ACCESO
+// Pantalla que permite restaurar el acceso al vault mediante la Recovery Key.
 @Composable
 fun RecoveryScreen(navController: NavController) {
 
     val context = LocalContext.current
+
+    // Gestor de recuperación del vault
     val recoveryManager = VaultRecoveryManager(context)
 
+    // Estado de la recovery key introducida
     var recoveryKey by remember { mutableStateOf("") }
+
+    // Estado de error
     var error by remember { mutableStateOf(false) }
 
+    // Selector de USB (SAF)
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
 
         if (uri != null) {
 
+            // Permisos persistentes
             context.contentResolver.takePersistableUriPermission(
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
 
+            // Intento de restauración
             val success = recoveryManager.restoreAccess(
                 recoveryKey,
                 uri
@@ -49,6 +60,7 @@ fun RecoveryScreen(navController: NavController) {
 
                 error = false
 
+                // Navegación a login
                 navController.navigate("login") {
                     popUpTo("masterPassword") { inclusive = true }
                 }
@@ -69,6 +81,7 @@ fun RecoveryScreen(navController: NavController) {
 
         item {
 
+            // Texto explicativo
             Text(
                 stringResource(id = R.string.intro_recovery),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -79,6 +92,7 @@ fun RecoveryScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Campo recovery key
             OutlinedTextField(
                 value = recoveryKey,
                 onValueChange = { recoveryKey = it },
@@ -102,6 +116,7 @@ fun RecoveryScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Botón recuperar
             Button(
                 onClick = {
                     launcher.launch(null)
@@ -122,6 +137,7 @@ fun RecoveryScreen(navController: NavController) {
                 )
             }
 
+            // Mensaje de error
             if (error) {
                 Spacer(modifier = Modifier.height(40.dp))
 

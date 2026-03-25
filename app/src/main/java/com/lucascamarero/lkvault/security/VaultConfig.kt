@@ -1,6 +1,5 @@
 package com.lucascamarero.lkvault.security
 
-// Importaciones necesarias para leer y escribir datos binarios en archivos
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File

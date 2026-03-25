@@ -8,45 +8,52 @@ import com.lucascamarero.lkvault.utils.UsbMonitor
 import com.lucascamarero.lkvault.utils.UsbUtils
 
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
-// ViewModel encargado del USB que contiene la carpeta LkVault
+// Este ViewModel gestiona el estado del dispositivo USB dentro de la aplicación.
+// Se encarga de monitorizar la conexión/desconexión, validar el dispositivo
+// y asegurar que la estructura del vault esté correctamente creada.
+// Expone un estado observable para que la UI reaccione a cambios en tiempo real.
 class UsbViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Estado observable por Compose de USB válido con carpeta LkVault
+    // Estado observable que indica si hay un USB válido conectado (con carpeta LkVault)
     var isUsbConnected = mutableStateOf(false)
         private set
 
-    // Gestor de la estructura interna del vault
+    // Gestor encargado de asegurar la estructura interna del vault en el USB
     private val vaultManager = VaultManager()
 
-    // Instancia de UsbMonitor. Se utiliza el Application context para evitar fugas de memoria.
+    // Monitor que escucha cambios en el estado del almacenamiento externo
+    // Se utiliza Application context para evitar fugas de memoria
     private val monitor = UsbMonitor(application) { isValidDevice ->
 
-        // Si existe un dispositivo USB
+        // Si se detecta un dispositivo USB válido
         if (isValidDevice) {
 
-            // Obtenemos la raíz del volumen válido
+            // Se obtiene la raíz del volumen válido
             val root = UsbUtils.getValidExternalRoot(application)
 
             if (root != null) {
-                // Si existe LkVault, aseguramos que las subcarpetas necesarias existan
+                // Se asegura que la estructura interna del vault esté creada
                 vaultManager.createStructureIfNeeded(root)
             }
         }
 
-        // Se actualiza el estado observable para la UI
+        // Se actualiza el estado observable que consume la UI
         isUsbConnected.value = isValidDevice
     }
 
     // Inicialización del ViewModel
     init {
-        // Inicia la monitorización del almacenamiento externo
+        // Se inicia la monitorización del USB al crear el ViewModel
         monitor.start()
     }
 
-    // Detiene la monitorización para evitar fugas de memoria.
+    // Método llamado cuando el ViewModel se destruye
     override fun onCleared() {
+
+        // Se detiene la monitorización para evitar fugas de memoria
         monitor.stop()
-        // Se ejecuta cuando el ViewModel se destruye.
+
+        // Se invoca la implementación base
         super.onCleared()
     }
 }

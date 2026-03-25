@@ -17,18 +17,27 @@ import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.security.SecurityManager
 import com.lucascamarero.lkvault.security.VaultUnlockManager
 
+// HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
+// HU-17: LIMITACIÓN DE INTENTOS DE ACCESO
+// Pantalla de login donde el usuario introduce la contraseña maestra.
+// Incluye control de intentos fallidos y bloqueo temporal.
 @Composable
 fun LoginScreen(
     navController: NavController
 ) {
 
     val context = LocalContext.current
+
+    // Gestor de seguridad (intentos y bloqueo)
     val securityManager = remember { SecurityManager(context) }
 
+    // Estado del campo de contraseña
     val password = remember { mutableStateOf("") }
 
+    // Estado de error
     var error by remember { mutableStateOf(false) }
 
+    // Estados de control de seguridad
     var attemptsLeft by remember { mutableStateOf(securityManager.getAttemptsLeft()) }
     var isBlocked by remember { mutableStateOf(securityManager.isBlocked()) }
     var blockTime by remember { mutableStateOf(securityManager.getRemainingBlockTime()) }
@@ -43,6 +52,7 @@ fun LoginScreen(
 
         item {
 
+            // Texto título login
             Text(
                 stringResource(id = R.string.login),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -53,6 +63,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Campo contraseña
             OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
@@ -77,32 +88,38 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Botón login
             Button(
                 onClick = {
 
+                    // Si está bloqueado, se cancela el intento
                     if (securityManager.isBlocked()) {
                         isBlocked = true
                         blockTime = securityManager.getRemainingBlockTime()
                         return@Button
                     }
 
+                    // Intento de desbloqueo del vault
                     val unlockManager = VaultUnlockManager(context)
                     val masterKey = unlockManager.unlockVault(password.value)
 
                     if (masterKey != null) {
 
+                        // Login correcto → reset de seguridad
                         securityManager.registerSuccess()
 
                         error = false
                         attemptsLeft = securityManager.getAttemptsLeft()
                         isBlocked = false
 
+                        // Navegación a pantalla principal
                         navController.navigate("password") {
                             popUpTo("login") { inclusive = true }
                         }
 
                     } else {
 
+                        // Login fallido → registrar intento
                         securityManager.registerFailure()
 
                         error = true
@@ -127,7 +144,7 @@ fun LoginScreen(
                 )
             }
 
-            // -------- ERROR --------
+            // Mensaje de error con intentos restantes
             if (error && !isBlocked) {
                 Spacer(modifier = Modifier.height(30.dp))
 
@@ -140,7 +157,7 @@ fun LoginScreen(
                 )
             }
 
-            // -------- BLOQUEO --------
+            // Mensaje de bloqueo con tiempo restante
             if (isBlocked) {
                 Spacer(modifier = Modifier.height(30.dp))
 
