@@ -8,12 +8,14 @@ import com.lucascamarero.lkvault.utils.UsbStorageManager
 import java.util.UUID
 
 // HU-20: CREACIÓN Y ALMACENAMIENTO DE CONTRASEÑAS
+// HU-21: LECTURA DE CONTRASEÑAS DESDE USB
 // Esta clase gestiona la persistencia de contraseñas en el USB.
 // Se encarga de:
 // - Convertir datos en claro a formato cifrado
 // - Aplicar cifrado AES-256-GCM con la Master Key
 // - Guardar los datos en el almacenamiento externo (USB)
-//
+// Recupera todas las contraseñas almacenadas en la carpeta "passwords" del vault.
+// Devuelve una lista de EncryptedPasswordEntry (sin descifrar).
 // IMPORTANTE:
 // - La Master Key debe estar previamente reconstruida (login)
 // - Nunca se almacena en esta clase
@@ -77,5 +79,73 @@ class PasswordRepository(private val context: Context) {
         payloadBytes.fill(0)
 
         return true
+    }
+
+    fun getAllPasswords(): List<EncryptedPasswordEntry> {
+
+        // -------- 1. Obtener URI del USB --------
+        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+        val uriString = prefs.getString("usb_uri", null) ?: return emptyList()
+        val treeUri = Uri.parse(uriString)
+
+        // -------- 2. Acceder a carpeta passwords --------
+        val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
+            ?: return emptyList()
+
+        val result = mutableListOf<EncryptedPasswordEntry>()
+
+        // -------- 3. Leer archivos --------
+        passwordsDir.listFiles().forEach { file ->
+
+            // Leer contenido JSON
+            val json = context.contentResolver
+                .openInputStream(file.uri)
+                ?.bufferedReader()
+                ?.use { it.readText() }
+                ?: return@forEach
+
+            try {
+                // Convertir JSON → modelo
+                val entry = serializer.jsonToEntry(json)
+
+                result.add(entry)
+
+            } catch (e: Exception) {
+                // Si el archivo está corrupto o manipulado → se ignora
+            }
+        }
+
+        // -------- 4. Devolver lista --------
+        return result
+    }
+
+    // Descifra una entrada utilizando la Master Key
+    fun decryptPassword(
+        entry: EncryptedPasswordEntry,
+        masterKey: ByteArray
+    ): PasswordEntry? {
+
+        return try {
+
+            // -------- 1. Descifrar payload --------
+            val decryptedBytes = cipher.decrypt(
+                entry.encryptedData,
+                masterKey
+            )
+
+            // -------- 2. Convertir a modelo --------
+            val payload = serializer.bytesToPayload(decryptedBytes)
+
+            // -------- 3. Construir objeto final --------
+            PasswordEntry(
+                name = entry.name,
+                username = payload.username,
+                password = payload.password
+            )
+
+        } catch (e: Exception) {
+            // Si falla → clave incorrecta o datos corruptos
+            null
+        }
     }
 }

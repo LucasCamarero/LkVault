@@ -1,6 +1,7 @@
 package com.lucascamarero.lkvault.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -22,6 +24,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,9 +53,18 @@ fun PasswordScreen(
 
     val masterKey = sessionViewModel.masterKey
 
+    val selectedPassword = passwordViewModel.selectedPassword.value
+
+    // 🔥 NUEVO: estado lista
+    val passwords = passwordViewModel.passwords.value
+
+    // 🔥 NUEVO: cargar al entrar
+    LaunchedEffect(Unit) {
+        passwordViewModel.loadPasswords()
+    }
+
     var showDialog by remember { mutableStateOf(false) }
 
-    // Estado de los campos de la contraseña
     val name = remember { mutableStateOf("") }
     val user = remember { mutableStateOf("") }
     val password1 = remember { mutableStateOf("") }
@@ -75,6 +87,8 @@ fun PasswordScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+
+        // -------- HEADER --------
         item {
             Row(
                 modifier = Modifier
@@ -107,14 +121,48 @@ fun PasswordScreen(
                 }
             }
         }
+
+        // -------- LISTA / VACÍO --------
+        if (passwords.isEmpty()) {
+
+            item {
+                Text(
+                    text = "Sin contraseñas todavía",
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 40.dp)
+                )
+            }
+
+        } else {
+
+            items(passwords) { entry ->
+
+                Text(
+                    text = entry.name,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                        .clickable {
+
+                            val key = masterKey ?: return@clickable
+
+                            passwordViewModel.decryptPassword(entry, key)
+                        }
+                )
+            }
+        }
     }
 
-    // Dialog
+    // -------- DIALOG --------
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = {
-                // Texto informativo inicial
                 Text(
                     stringResource(id = R.string.titulo_alert),
                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -124,121 +172,65 @@ fun PasswordScreen(
                 )
             },
             text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                    // Campo nombre
                     OutlinedTextField(
                         value = name.value,
                         onValueChange = { name.value = it },
                         label = {
-                            Text(
-                                stringResource(id = R.string.con_name),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.labelLarge,
-                        singleLine = true,
-                        shape = RoundedCornerShape(26.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            cursorColor = MaterialTheme.colorScheme.primary
-                        )
+                            Text(stringResource(id = R.string.con_name))
+                        }
                     )
 
-                    // Campo usuario
                     OutlinedTextField(
                         value = user.value,
                         onValueChange = { user.value = it },
                         label = {
-                            Text(
-                                stringResource(id = R.string.con_user),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.labelLarge,
-                        singleLine = true,
-                        shape = RoundedCornerShape(26.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            cursorColor = MaterialTheme.colorScheme.primary
-                        )
+                            Text(stringResource(id = R.string.con_user))
+                        }
                     )
-                    // Campo contraseña
+
                     OutlinedTextField(
                         value = password1.value,
                         onValueChange = { password1.value = it },
                         label = {
-                            Text(
-                                stringResource(id = R.string.con_password),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(stringResource(id = R.string.con_password))
                         },
-                        textStyle = MaterialTheme.typography.labelLarge,
-                        visualTransformation = PasswordVisualTransformation(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(26.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            cursorColor = MaterialTheme.colorScheme.primary
-                        )
+                        visualTransformation = PasswordVisualTransformation()
                     )
-                    // ERROR
+
                     if (showMismatch) {
                         Text(
                             text = stringResource(id = R.string.error_maestra),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
-                    // Campo contraseña2
+
                     OutlinedTextField(
                         value = password2.value,
                         onValueChange = { password2.value = it },
                         label = {
-                            Text(
-                                stringResource(id = R.string.con_confirm),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(stringResource(id = R.string.con_confirm))
                         },
-                        textStyle = MaterialTheme.typography.labelLarge,
-                        visualTransformation = PasswordVisualTransformation(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(26.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            cursorColor = MaterialTheme.colorScheme.primary
-                        )
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Guardo la contraseña
+
                         val key = masterKey ?: return@TextButton
+
                         passwordViewModel.createPassword(
                             name = name.value,
                             username = user.value,
                             password = password1.value,
                             masterKey = key
                         )
+
                         showDialog = false
 
-                        // Limpiar campos
                         name.value = ""
                         user.value = ""
                         password1.value = ""
@@ -251,11 +243,42 @@ fun PasswordScreen(
             },
             dismissButton = {
                 TextButton(
+                    onClick = { showDialog = false }
+                ) {
+                    Text(stringResource(id = R.string.con_cancel_button))
+                }
+            }
+        )
+    }
+
+    if (selectedPassword != null) {
+
+        AlertDialog(
+            onDismissRequest = {
+                passwordViewModel.clearSelectedPassword()
+            },
+            title = {
+                Text(
+                    text = selectedPassword.name,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column {
+
+                    Text("Usuario: ${selectedPassword.username}")
+                    Text("Contraseña: ${selectedPassword.password}")
+
+                }
+            },
+            confirmButton = {
+                TextButton(
                     onClick = {
-                        showDialog = false
+                        passwordViewModel.clearSelectedPassword()
                     }
                 ) {
-                    Text(stringResource(id = R.string.con_cancel_button),)
+                    Text("Cerrar")
                 }
             }
         )
