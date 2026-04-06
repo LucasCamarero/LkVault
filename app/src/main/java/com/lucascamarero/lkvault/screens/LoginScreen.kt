@@ -12,10 +12,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.security.SecurityManager
 import com.lucascamarero.lkvault.security.VaultUnlockManager
+import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
 // HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
 // HU-17: LIMITACIÓN DE INTENTOS DE ACCESO
@@ -23,7 +25,8 @@ import com.lucascamarero.lkvault.security.VaultUnlockManager
 // Incluye control de intentos fallidos y bloqueo temporal.
 @Composable
 fun LoginScreen(
-    navController: NavController
+    navController: NavController,
+    sessionViewModel: SessionViewModel
 ) {
 
     val context = LocalContext.current
@@ -111,6 +114,9 @@ fun LoginScreen(
                         error = false
                         attemptsLeft = securityManager.getAttemptsLeft()
                         isBlocked = false
+
+                        // Guardo la master Key en sesión
+                        sessionViewModel.setMasterKey(masterKey)
 
                         // Navegación a pantalla principal
                         navController.navigate("password") {

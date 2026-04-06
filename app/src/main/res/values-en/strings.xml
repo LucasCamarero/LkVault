@@ -30,6 +30,13 @@
     <string name="validez_rv">Invalid recovery key</string>
     <!-- Contraseñas -->
     <string name="titulo_con">Passwords</string>
+    <string name="titulo_alert">New Password</string>
+    <string name="con_name">Name</string>
+    <string name="con_user">User</string>
+    <string name="con_password">Password</string>
+    <string name="con_confirm">Confirm Password</string>
+    <string name="con_save_button">Save</string>
+    <string name="con_cancel_button">Cancel</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Images</string>
 </resources>

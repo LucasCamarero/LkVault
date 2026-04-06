@@ -57,4 +57,11 @@ class UsbStorageManager(private val context: Context) {
         // Se obtiene un OutputStream a través del ContentResolver
         return context.contentResolver.openOutputStream(uri)
     }
+
+    fun getPasswordsDirectory(treeUri: Uri): DocumentFile? {
+
+        val vaultDir = getVaultDirectory(treeUri) ?: return null
+
+        return vaultDir.findFile("passwords")
+    }
 }

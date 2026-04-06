@@ -49,6 +49,8 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     // ViewModel que controla el estado del vault
     val vaultViewModel: VaultViewModel = viewModel()
 
+    val sessionViewModel: SessionViewModel = viewModel()
+
     // Cuando cambia el estado del USB, se vuelve a comprobar el vault
     LaunchedEffect(usbConnected) {
         if (usbConnected) {
@@ -143,7 +145,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
                     // Pantalla de login
                     composable("login") {
-                        LoginScreen(navController)
+                        LoginScreen(navController, sessionViewModel)
                     }
 
                     // Pantalla de recuperación
@@ -153,7 +155,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
                     // Pantalla de contraseñas
                     composable("password") {
-                        PasswordScreen(navController)
+                        PasswordScreen(navController, sessionViewModel)
                     }
 
                     // Pantalla de imágenes
