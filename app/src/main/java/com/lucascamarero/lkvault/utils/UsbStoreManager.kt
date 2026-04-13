@@ -53,9 +53,7 @@ class UsbStorageManager(private val context: Context) {
 
     // Abre un flujo de salida para escribir datos en un archivo identificado por su URI
     fun openOutput(uri: Uri): OutputStream? {
-
-        // Se obtiene un OutputStream a través del ContentResolver
-        return context.contentResolver.openOutputStream(uri)
+        return context.contentResolver.openOutputStream(uri, "wt")
     }
 
     fun getPasswordsDirectory(treeUri: Uri): DocumentFile? {

@@ -28,6 +28,15 @@ class PasswordViewModel(application: Application) : AndroidViewModel(application
     var selectedPassword = mutableStateOf<PasswordEntry?>(null)
         private set
 
+    var updateSuccess = mutableStateOf<Boolean?>(null)
+        private set
+
+    var deleteSuccess = mutableStateOf<Boolean?>(null)
+        private set
+
+    var selectedEncrypted = mutableStateOf<EncryptedPasswordEntry?>(null)
+        private set
+
     // Crear contraseña
     fun createPassword(
         name: String,
@@ -52,17 +61,55 @@ class PasswordViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updatePassword(
+        entryId: String,
+        name: String,
+        username: String,
+        password: String,
+        masterKey: ByteArray
+    ) {
+
+        val entry = PasswordEntry(
+            name = name,
+            username = username,
+            password = password
+        )
+
+        val result = repository.updatePassword(entryId, entry, masterKey)
+
+        updateSuccess.value = result
+
+        if (result) {
+            loadPasswords()
+        }
+    }
+
+    fun deletePassword(entryId: String) {
+
+        val result = repository.deletePassword(entryId)
+
+        deleteSuccess.value = result
+
+        if (result) {
+            loadPasswords()
+        }
+    }
+
     // Carga todas las contraseñas desde el repositorio
     fun loadPasswords() {
         passwords.value = repository.getAllPasswords()
     }
 
     fun decryptPassword(entry: EncryptedPasswordEntry, masterKey: ByteArray) {
+
+        selectedEncrypted.value = entry
+
         selectedPassword.value = repository.decryptPassword(entry, masterKey)
     }
 
     fun clearSelectedPassword() {
         selectedPassword.value = null
+        selectedEncrypted.value = null
     }
 
     // Reset estado (opcional)

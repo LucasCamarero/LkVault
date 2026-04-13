@@ -31,12 +31,17 @@
     <!-- Contraseñas -->
     <string name="titulo_con">Contraseñas</string>
     <string name="titulo_alert">Nueva Contraseña</string>
+    <string name="con_info">No hay contraseñas creadas</string>
     <string name="con_name">Nombre</string>
     <string name="con_user">Usuario</string>
     <string name="con_password">Contraseña</string>
     <string name="con_confirm">Confirmar contraseña</string>
+    <string name="con_error">Las contraseñas no coinciden</string>
     <string name="con_save_button">Guardar</string>
     <string name="con_cancel_button">Cancelar</string>
+    <string name="con_delete">Eliminar contraseña</string>
+    <string name="con_confirm_delete">¿Seguro que quieres eliminar esta contraseña?</string>
+    <string name="con_del">Eliminar</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Imágenes</string>
 </resources>

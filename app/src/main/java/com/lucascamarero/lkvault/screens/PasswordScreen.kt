@@ -1,12 +1,14 @@
 package com.lucascamarero.lkvault.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +17,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,11 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
+import com.lucascamarero.lkvault.ui.components.PasswordDialog
 import com.lucascamarero.lkvault.viewmodels.PasswordViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
@@ -70,6 +83,13 @@ fun PasswordScreen(
     val password1 = remember { mutableStateOf("") }
     val password2 = remember { mutableStateOf("") }
 
+    fun clearFields() {
+        name.value = ""
+        user.value = ""
+        password1.value = ""
+        password2.value = ""
+    }
+
     val showMismatch =
         password2.value.isNotEmpty() &&
                 password1.value != password2.value
@@ -78,6 +98,26 @@ fun PasswordScreen(
         password1.value.isNotBlank() &&
                 password2.value.isNotBlank() &&
                 password1.value == password2.value
+
+    val isValidToSave = isValid && name.value.isNotBlank() && user.value.isNotBlank()
+
+    val isValidToEdit = isValid && user.value.isNotBlank()
+
+    var showUser by remember { mutableStateOf(false) }
+    var showPassword1 by remember { mutableStateOf(false) }
+    var showPassword2 by remember { mutableStateOf(false) }
+
+    val selectedEncrypted = passwordViewModel.selectedEncrypted.value
+
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(selectedPassword) {
+        selectedPassword?.let {
+            user.value = it.username
+            password1.value = it.password
+            password2.value = it.password
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -126,8 +166,10 @@ fun PasswordScreen(
         if (passwords.isEmpty()) {
 
             item {
+                Spacer(modifier = Modifier.height(200.dp))
+
                 Text(
-                    text = "Sin contraseñas todavía",
+                    text = stringResource(id = R.string.con_info),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 40.dp)
@@ -138,148 +180,211 @@ fun PasswordScreen(
 
             items(passwords) { entry ->
 
-                Text(
-                    text = entry.name,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    style = MaterialTheme.typography.bodyLarge,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            RoundedCornerShape(12.dp)
+                        )
                         .padding(16.dp)
-                        .clickable {
+                ) {
 
-                            val key = masterKey ?: return@clickable
+                    // 🔹 Nombre (línea 1)
+                    Text(
+                        text = entry.name,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
 
-                            passwordViewModel.decryptPassword(entry, key)
+                    // 🔹 Botones (línea 2)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            16.dp,
+                            Alignment.CenterHorizontally
+                        )
+                    ) {
+                        IconButton(
+                            onClick = {
+                                val key = masterKey ?: return@IconButton
+                                passwordViewModel.decryptPassword(entry, key)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = MaterialTheme.colorScheme.secondaryContainer
+                            )
                         }
-                )
+
+                        // Copiar usuario
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { /* copiar user */ }) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copiar usuario",
+                                    tint = MaterialTheme.colorScheme.secondaryContainer
+                                )
+                            }
+                            Text(
+                                "US",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        }
+
+                        // Copiar password
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { /* copiar password */ }) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copiar contraseña",
+                                    tint = MaterialTheme.colorScheme.secondaryContainer
+                                )
+                            }
+                            Text(
+                                "PW",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                deleteTarget = entry.id
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 
-    // -------- DIALOG --------
-    if (showDialog) {
+    if (deleteTarget != null) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { deleteTarget = null },
             title = {
                 Text(
-                    stringResource(id = R.string.titulo_alert),
+                    stringResource(id = R.string.con_delete),
                     color = MaterialTheme.colorScheme.secondaryContainer,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
-                )
-            },
+            )},
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
-                    OutlinedTextField(
-                        value = name.value,
-                        onValueChange = { name.value = it },
-                        label = {
-                            Text(stringResource(id = R.string.con_name))
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = user.value,
-                        onValueChange = { user.value = it },
-                        label = {
-                            Text(stringResource(id = R.string.con_user))
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = password1.value,
-                        onValueChange = { password1.value = it },
-                        label = {
-                            Text(stringResource(id = R.string.con_password))
-                        },
-                        visualTransformation = PasswordVisualTransformation()
-                    )
-
-                    if (showMismatch) {
-                        Text(
-                            text = stringResource(id = R.string.error_maestra),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    OutlinedTextField(
-                        value = password2.value,
-                        onValueChange = { password2.value = it },
-                        label = {
-                            Text(stringResource(id = R.string.con_confirm))
-                        },
-                        visualTransformation = PasswordVisualTransformation()
-                    )
-                }
-            },
+                Text(
+                    stringResource(id = R.string.con_confirm_delete),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                ) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-
-                        val key = masterKey ?: return@TextButton
-
-                        passwordViewModel.createPassword(
-                            name = name.value,
-                            username = user.value,
-                            password = password1.value,
-                            masterKey = key
-                        )
-
-                        showDialog = false
-
-                        name.value = ""
-                        user.value = ""
-                        password1.value = ""
-                        password2.value = ""
-                    },
-                    enabled = isValid && masterKey != null
-                ) {
-                    Text(stringResource(id = R.string.con_save_button))
+                TextButton(onClick = {
+                    passwordViewModel.deletePassword(deleteTarget!!)
+                    deleteTarget = null
+                }) {
+                    Text(
+                        stringResource(id = R.string.con_del),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showDialog = false }
-                ) {
-                    Text(stringResource(id = R.string.con_cancel_button))
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text(
+                        stringResource(id = R.string.con_cancel_button),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         )
     }
 
-    if (selectedPassword != null) {
+    // Dialogo para crear una contraseña
+    if (showDialog) {
+        PasswordDialog(
+            title = stringResource(id = R.string.titulo_alert),
+            name = name,
+            user = user,
+            password1 = password1,
+            password2 = password2,
+            showUser = showUser,
+            onToggleUser = { showUser = !showUser },
+            showPassword1 = showPassword1,
+            onTogglePassword1 = { showPassword1 = !showPassword1 },
+            showPassword2 = showPassword2,
+            onTogglePassword2 = { showPassword2 = !showPassword2 },
+            showMismatch = showMismatch,
+            isValid = isValidToSave && masterKey != null,
+            onConfirm = {
+                val key = masterKey ?: return@PasswordDialog
+                passwordViewModel.createPassword(
+                    name.value,
+                    user.value,
+                    password1.value,
+                    key
+                )
+                clearFields()
+                showDialog = false
+            },
+            onDismiss = {
+                clearFields()
+                showDialog = false
+            }
+        )
+    }
 
-        AlertDialog(
-            onDismissRequest = {
+    // Dialogo para editar una contraseña
+    if (selectedPassword != null) {
+        PasswordDialog(
+            title = selectedPassword.name,
+            name = null,
+            user = user,
+            password1 = password1,
+            password2 = password2,
+            showUser = showUser,
+            onToggleUser = { showUser = !showUser },
+            showPassword1 = showPassword1,
+            onTogglePassword1 = { showPassword1 = !showPassword1 },
+            showPassword2 = showPassword2,
+            onTogglePassword2 = { showPassword2 = !showPassword2 },
+            showMismatch = showMismatch,
+            isValid = isValidToEdit && masterKey != null,
+            onConfirm = {
+                val key = masterKey ?: return@PasswordDialog
+                val encrypted = selectedEncrypted ?: return@PasswordDialog
+
+                passwordViewModel.updatePassword(
+                    entryId = encrypted.id,
+                    name = selectedPassword.name, // no editable en UI
+                    username = user.value,
+                    password = password1.value,
+                    masterKey = key
+                )
+
+                clearFields()
                 passwordViewModel.clearSelectedPassword()
             },
-            title = {
-                Text(
-                    text = selectedPassword.name,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Column {
-
-                    Text("Usuario: ${selectedPassword.username}")
-                    Text("Contraseña: ${selectedPassword.password}")
-
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        passwordViewModel.clearSelectedPassword()
-                    }
-                ) {
-                    Text("Cerrar")
-                }
+            onDismiss = {
+                clearFields()
+                passwordViewModel.clearSelectedPassword()
             }
         )
     }

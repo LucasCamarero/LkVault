@@ -148,4 +148,74 @@ class PasswordRepository(private val context: Context) {
             null
         }
     }
+
+    fun updatePassword(
+        entryId: String,
+        updatedEntry: PasswordEntry,
+        masterKey: ByteArray
+    ): Boolean {
+
+        // -------- 1. Obtener URI del USB --------
+        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+        val uriString = prefs.getString("usb_uri", null) ?: return false
+        val treeUri = Uri.parse(uriString)
+
+        // -------- 2. Obtener directorio --------
+        val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
+            ?: return false
+
+        val fileName = "$entryId.pwd"
+
+        val file = passwordsDir.findFile(fileName) ?: return false
+
+        // -------- 3. Crear payload --------
+        val payload = PasswordPayload(
+            username = updatedEntry.username,
+            password = updatedEntry.password
+        )
+
+        val payloadBytes = serializer.payloadToBytes(payload)
+
+        // -------- 4. Cifrar --------
+        val encryptedData = cipher.encrypt(payloadBytes, masterKey)
+
+        // -------- 5. Reconstruir modelo --------
+        val encryptedEntry = EncryptedPasswordEntry(
+            id = entryId,
+            name = updatedEntry.name,
+            encryptedData = encryptedData
+        )
+
+        // -------- 6. Serializar --------
+        val json = serializer.entryToJson(encryptedEntry)
+
+        // -------- 7. Sobrescribir archivo --------
+        storageManager.openOutput(file.uri)?.use {
+            it.write(json.toByteArray(Charsets.UTF_8))
+        } ?: return false
+
+        // -------- Limpieza --------
+        payloadBytes.fill(0)
+
+        return true
+    }
+
+    fun deletePassword(entryId: String): Boolean {
+
+        // -------- 1. Obtener URI --------
+        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+        val uriString = prefs.getString("usb_uri", null) ?: return false
+        val treeUri = Uri.parse(uriString)
+
+        // -------- 2. Obtener directorio --------
+        val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
+            ?: return false
+
+        val fileName = "$entryId.pwd"
+
+        val file = passwordsDir.findFile(fileName) ?: return false
+
+        // -------- 3. Eliminar --------
+        return file.delete()
+    }
 }
