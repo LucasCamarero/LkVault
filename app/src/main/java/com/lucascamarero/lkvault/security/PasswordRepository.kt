@@ -149,6 +149,13 @@ class PasswordRepository(private val context: Context) {
         }
     }
 
+    fun decryptPasswordDirect(
+        entry: EncryptedPasswordEntry,
+        masterKey: ByteArray
+    ): PasswordEntry? {
+        return decryptPassword(entry, masterKey)
+    }
+
     fun updatePassword(
         entryId: String,
         updatedEntry: PasswordEntry,

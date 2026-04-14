@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +53,7 @@ import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.ui.components.PasswordDialog
 import com.lucascamarero.lkvault.utils.PasswordGenerator
+import com.lucascamarero.lkvault.utils.SecureClipboardManager
 import com.lucascamarero.lkvault.viewmodels.PasswordViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
@@ -133,6 +135,9 @@ fun PasswordScreen(
     val isGeneratorValid =
         l > 0 &&
                 (l + n + s) <= 64
+
+    val context = LocalContext.current
+    val clipboardManager = remember { SecureClipboardManager(context) }
 
     LazyColumn(
         modifier = Modifier
@@ -242,7 +247,15 @@ fun PasswordScreen(
 
                         // Copiar usuario
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { /* copiar user */ }) {
+                            IconButton(onClick = {
+                                val key = masterKey ?: return@IconButton
+
+                                val decrypted = passwordViewModel.decryptPasswordDirect(entry, key)
+
+                                decrypted?.let {
+                                    clipboardManager.copyWithAutoClear(it.username)
+                                }
+                                }) {
                                 Icon(
                                     Icons.Default.ContentCopy,
                                     contentDescription = "Copiar usuario",
@@ -258,7 +271,15 @@ fun PasswordScreen(
 
                         // Copiar password
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { /* copiar password */ }) {
+                            IconButton(onClick = {
+                                val key = masterKey ?: return@IconButton
+
+                                val decrypted = passwordViewModel.decryptPasswordDirect(entry, key)
+
+                                decrypted?.let {
+                                    clipboardManager.copyWithAutoClear(it.password)
+                                }
+                            }) {
                                 Icon(
                                     Icons.Default.ContentCopy,
                                     contentDescription = "Copiar contraseña",

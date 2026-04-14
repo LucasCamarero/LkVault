@@ -107,6 +107,13 @@ class PasswordViewModel(application: Application) : AndroidViewModel(application
         selectedPassword.value = repository.decryptPassword(entry, masterKey)
     }
 
+    fun decryptPasswordDirect(
+        entry: EncryptedPasswordEntry,
+        masterKey: ByteArray
+    ): PasswordEntry? {
+        return repository.decryptPasswordDirect(entry, masterKey)
+    }
+
     fun clearSelectedPassword() {
         selectedPassword.value = null
         selectedEncrypted.value = null
