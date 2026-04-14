@@ -42,6 +42,11 @@
     <string name="con_delete">Delete password</string>
     <string name="con_confirm_delete">Are you sure you want to delete this password?</string>
     <string name="con_del">Delete</string>
+    <string name="con_generation">Automatic password generation: enter a number in each field</string>
+    <string name="con_gen_letras">Letters</string>
+    <string name="con_gen_numeros">Numbers</string>
+    <string name="con_gen_simbolos">Symbols</string>
+    <string name="con_gen">Generate</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Images</string>
 </resources>

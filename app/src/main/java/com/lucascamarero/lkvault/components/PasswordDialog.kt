@@ -2,10 +2,13 @@ package com.lucascamarero.lkvault.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -35,7 +38,8 @@ fun PasswordDialog(
     showMismatch: Boolean,
     isValid: Boolean,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onGeneratePassword: () -> Unit
 ) {
 
     AlertDialog(
@@ -62,7 +66,7 @@ fun PasswordDialog(
                         label = {
                             Text(
                                 stringResource(id = R.string.con_name),
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                                color = MaterialTheme.colorScheme.primaryContainer,
                                 style = MaterialTheme.typography.labelLarge
                             )},
                         singleLine = true,
@@ -125,14 +129,23 @@ fun PasswordDialog(
                     else
                         PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = onTogglePassword1) {
-                            Icon(
-                                imageVector = if (showPassword1)
-                                    Icons.Default.VisibilityOff
-                                else
-                                    Icons.Default.Visibility,
-                                contentDescription = null
-                            )
+                        Row {
+                            IconButton(onClick = onTogglePassword1) {
+                                Icon(
+                                    imageVector = if (showPassword1)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+
+                            IconButton(onClick = { onGeneratePassword() }) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "Generar contraseña"
+                                )
+                            }
                         }
                     },
                     singleLine = true,

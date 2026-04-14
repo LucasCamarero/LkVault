@@ -42,6 +42,11 @@
     <string name="con_delete">Eliminar contraseña</string>
     <string name="con_confirm_delete">¿Seguro que quieres eliminar esta contraseña?</string>
     <string name="con_del">Eliminar</string>
+    <string name="con_generation">Generación automática de contraseña: introduce un número en cada campo</string>
+    <string name="con_gen_letras">Letras</string>
+    <string name="con_gen_numeros">Números</string>
+    <string name="con_gen_simbolos">Símbolos</string>
+    <string name="con_gen">Generar</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Imágenes</string>
 </resources>

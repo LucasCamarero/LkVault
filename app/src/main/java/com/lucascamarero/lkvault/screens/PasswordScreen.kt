@@ -51,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.ui.components.PasswordDialog
+import com.lucascamarero.lkvault.utils.PasswordGenerator
 import com.lucascamarero.lkvault.viewmodels.PasswordViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
@@ -118,6 +119,20 @@ fun PasswordScreen(
             password2.value = it.password
         }
     }
+
+    var showGeneratorDialog by remember { mutableStateOf(false) }
+
+    val letters = remember { mutableStateOf("") }
+    val numbers = remember { mutableStateOf("") }
+    val symbols = remember { mutableStateOf("") }
+
+    val l = letters.value.toIntOrNull() ?: 0
+    val n = numbers.value.toIntOrNull() ?: 0
+    val s = symbols.value.toIntOrNull() ?: 0
+
+    val isGeneratorValid =
+        l > 0 &&
+                (l + n + s) <= 64
 
     LazyColumn(
         modifier = Modifier
@@ -283,14 +298,16 @@ fun PasswordScreen(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
-            )},
+                )
+            },
             text = {
                 Text(
                     stringResource(id = R.string.con_confirm_delete),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
-                ) },
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     passwordViewModel.deletePassword(deleteTarget!!)
@@ -347,6 +364,9 @@ fun PasswordScreen(
             onDismiss = {
                 clearFields()
                 showDialog = false
+            },
+            onGeneratePassword = {
+                showGeneratorDialog = true
             }
         )
     }
@@ -385,6 +405,154 @@ fun PasswordScreen(
             onDismiss = {
                 clearFields()
                 passwordViewModel.clearSelectedPassword()
+            },
+            onGeneratePassword = {
+                showGeneratorDialog = true
+            }
+        )
+    }
+
+    // alert dialog para generar automáticamente una contraseña
+    if (showGeneratorDialog) {
+
+        AlertDialog(
+            onDismissRequest = { showGeneratorDialog = false },
+
+            title = {
+                Text(
+                    stringResource(id = R.string.con_generation),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    textAlign = TextAlign.Center
+                )
+            },
+
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                    OutlinedTextField(
+                        value = letters.value,
+                        onValueChange = { letters.value = it.filter { c -> c.isDigit() } },
+                        label = {
+                            Text(
+                                stringResource(id = R.string.con_gen_letras),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(26.dp),
+                        textStyle = MaterialTheme.typography.labelLarge,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = numbers.value,
+                        onValueChange = { numbers.value = it.filter { c -> c.isDigit() } },
+                        label = {
+                            Text(
+                                stringResource(id = R.string.con_gen_numeros),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(26.dp),
+                        textStyle = MaterialTheme.typography.labelLarge,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = symbols.value,
+                        onValueChange = { symbols.value = it.filter { c -> c.isDigit() } },
+                        label = {
+                            Text(
+                                stringResource(id = R.string.con_gen_simbolos),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(26.dp),
+                        textStyle = MaterialTheme.typography.labelLarge,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
+            },
+
+            confirmButton = {
+                TextButton(
+                    onClick = {
+
+                        val generator = PasswordGenerator()
+
+                        val generated = generator.generate(l, n, s)
+
+                        password1.value = generated
+                        password2.value = generated
+
+                        // limpiar estado
+                        letters.value = ""
+                        numbers.value = ""
+                        symbols.value = ""
+
+                        showGeneratorDialog = false
+                    },
+                    enabled = isGeneratorValid,
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Text(
+                        stringResource(id = R.string.con_gen),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        letters.value = ""
+                        numbers.value = ""
+                        symbols.value = ""
+                        showGeneratorDialog = false
+                    },
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Text(
+                        stringResource(id = R.string.con_cancel_button),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         )
     }
