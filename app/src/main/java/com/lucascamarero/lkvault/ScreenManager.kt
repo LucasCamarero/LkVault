@@ -160,7 +160,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
                     // Pantalla de imágenes
                     composable("image") {
-                        ImageScreen(navController)
+                        ImageScreen(navController, sessionViewModel)
                     }
                 }
             }

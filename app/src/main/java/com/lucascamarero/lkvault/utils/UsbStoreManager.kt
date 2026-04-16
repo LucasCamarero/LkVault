@@ -62,4 +62,11 @@ class UsbStorageManager(private val context: Context) {
 
         return vaultDir.findFile("passwords")
     }
+
+    fun getImagesDirectory(treeUri: Uri): DocumentFile? {
+
+        val vaultDir = getVaultDirectory(treeUri) ?: return null
+
+        return vaultDir.findFile("images")
+    }
 }
