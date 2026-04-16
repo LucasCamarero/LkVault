@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
-import com.lucascamarero.lkvault.security.SecurityManager
-import com.lucascamarero.lkvault.security.VaultUnlockManager
+import com.lucascamarero.lkvault.security.core.SecurityManager
+import com.lucascamarero.lkvault.security.vault.VaultUnlockManager
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
 // HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY

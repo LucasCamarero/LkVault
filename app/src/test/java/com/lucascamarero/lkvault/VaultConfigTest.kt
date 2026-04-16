@@ -1,7 +1,7 @@
 package com.lucascamarero.lkvault
 
-import com.lucascamarero.lkvault.security.KeyDerivation
-import com.lucascamarero.lkvault.security.VaultConfig
+import com.lucascamarero.lkvault.security.key.KeyDerivation
+import com.lucascamarero.lkvault.security.vault.VaultConfig
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test

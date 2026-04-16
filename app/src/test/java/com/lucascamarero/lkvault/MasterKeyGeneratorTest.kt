@@ -1,6 +1,6 @@
 package com.lucascamarero.lkvault
 
-import com.lucascamarero.lkvault.security.MasterKeyGenerator
+import com.lucascamarero.lkvault.security.key.MasterKeyGenerator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test

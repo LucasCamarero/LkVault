@@ -23,10 +23,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
-import com.lucascamarero.lkvault.models.AppLanguage
+import com.lucascamarero.lkvault.models.language.AppLanguage
 import com.lucascamarero.lkvault.screens.*
 import com.lucascamarero.lkvault.ui.theme.Typography2
-import com.lucascamarero.lkvault.utils.UsbStorageManager
+import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.*
 
 // HU-4: IMPLEMENTACIÓN DE NAVEGACIÓN PRINCIPAL (TopBar + BottomBar)

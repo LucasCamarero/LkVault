@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
-import com.lucascamarero.lkvault.security.VaultRecoveryManager
+import com.lucascamarero.lkvault.security.vault.VaultRecoveryManager
 
 // HU-14: GENERACIÓN Y GESTIÓN DE RECOVERY KEY
 // HU-16: RECUPERACIÓN DE ACCESO

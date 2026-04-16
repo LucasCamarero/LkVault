@@ -5,7 +5,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import com.lucascamarero.lkvault.utils.UsbStorageManager
+import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 
 // HU-7: ESTRUCTURA INTERNA DE ALMACENAMIENTO EN USB
 // HU-15: FLUJO COMPLETO DE INICIALIZACIÓN CRIPTOGRÁFICA

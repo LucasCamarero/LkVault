@@ -3,9 +3,9 @@ package com.lucascamarero.lkvault.viewmodels
 import android.app.Application
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import com.lucascamarero.lkvault.models.PasswordEntry
-import com.lucascamarero.lkvault.security.PasswordRepository
-import com.lucascamarero.lkvault.models.EncryptedPasswordEntry
+import com.lucascamarero.lkvault.models.passwords.PasswordEntry
+import com.lucascamarero.lkvault.security.storage.PasswordRepository
+import com.lucascamarero.lkvault.models.passwords.EncryptedPasswordEntry
 
 // HU-20: CREAR CONTRASEÑA (VIEWMODEL)
 // Este ViewModel conecta la UI con el repositorio.

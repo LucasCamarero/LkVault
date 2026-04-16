@@ -4,8 +4,8 @@ import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import com.lucascamarero.lkvault.models.EncryptedImageEntry
-import com.lucascamarero.lkvault.security.ImageRepository
+import com.lucascamarero.lkvault.models.images.EncryptedImageEntry
+import com.lucascamarero.lkvault.security.storage.ImageRepository
 
 class ImageViewModel(application: Application) : AndroidViewModel(application) {
 

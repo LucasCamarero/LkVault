@@ -31,7 +31,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
-import com.lucascamarero.lkvault.models.EncryptedImageEntry
+import com.lucascamarero.lkvault.models.images.EncryptedImageEntry
 import com.lucascamarero.lkvault.viewmodels.ImageViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
@@ -118,7 +118,7 @@ fun ImageScreen(
             item {
                 Spacer(modifier = Modifier.height(200.dp))
                 Text(
-                    text = "No hay imágenes guardadas",
+                    text = stringResource(id = R.string.ima_info),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 40.dp)
@@ -151,15 +151,33 @@ fun ImageScreen(
             onDismissRequest = { editTarget = null },
 
             title = {
-                Text("Editar nombre")
+                Text(
+                    text = stringResource(id = R.string.ima_nombre),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    textAlign = TextAlign.Center
+                )
             },
 
             text = {
                 OutlinedTextField(
                     value = editName.value,
                     onValueChange = { editName.value = it },
-                    label = { Text("Nuevo nombre") },
-                    singleLine = true
+                    label = {
+                        Text(
+                            stringResource(id = R.string.con_name),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            style = MaterialTheme.typography.labelLarge
+                        )},
+                    singleLine = true,
+                    shape = RoundedCornerShape(26.dp),
+                    textStyle = MaterialTheme.typography.labelLarge,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             },
 
@@ -172,15 +190,24 @@ fun ImageScreen(
                         )
                         editTarget = null
                     },
-                    enabled = editName.value.isNotBlank()
+                    enabled = editName.value.isNotBlank(),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondaryContainer,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
                 ) {
-                    Text("Guardar")
+                    Text(stringResource(id = R.string.con_save_button),
+                        style = MaterialTheme.typography.bodySmall)
                 }
             },
 
             dismissButton = {
-                TextButton(onClick = { editTarget = null }) {
-                    Text("Cancelar")
+                TextButton(
+                    onClick = { editTarget = null }
+                ) {
+                    Text(stringResource(id = R.string.con_cancel_button),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondaryContainer)
                 }
             }
         )
@@ -190,19 +217,42 @@ fun ImageScreen(
     if (deleteTarget != null) {
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("Eliminar imagen") },
-            text = { Text("¿Seguro que quieres eliminarla?") },
+            title = {
+                Text(
+                    stringResource(id = R.string.borrar_ima),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    textAlign = TextAlign.Center
+                ) },
+            text = {
+                Text(
+                    stringResource(id = R.string.confirm_borrar_ima),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                ) },
+
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteImage(deleteTarget!!)
-                    deleteTarget = null
-                }) {
-                    Text("Eliminar")
+                TextButton(
+                    onClick = {
+                        viewModel.deleteImage(deleteTarget!!)
+                        deleteTarget = null
+                    }
+                ) {
+                    Text(stringResource(id = R.string.con_del),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondaryContainer)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) {
-                    Text("Cancelar")
+                TextButton(
+                    onClick = { deleteTarget = null }
+                ) {
+                    Text(
+                        stringResource(id = R.string.con_cancel_button),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    )
                 }
             }
         )
@@ -216,20 +266,35 @@ fun ImageScreen(
 
             title = {
                 Text(
-                    "Nueva imagen",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    stringResource(id = R.string.titulo_imagen_alert),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    textAlign = TextAlign.Center
                 )
             },
 
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     OutlinedTextField(
                         value = name.value,
                         onValueChange = { name.value = it },
-                        label = { Text("Nombre") },
-                        singleLine = true
+                        label = {
+                            Text(
+                                stringResource(id = R.string.con_name),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = MaterialTheme.typography.labelLarge
+                            )},
+                        singleLine = true,
+                        shape = RoundedCornerShape(26.dp),
+                        textStyle = MaterialTheme.typography.labelLarge,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -239,11 +304,22 @@ fun ImageScreen(
                             imagePickerLauncher.launch("image/*")
                         }
                     ) {
-                        Text("Seleccionar imagen")
+                        Text(stringResource(id = R.string.select_ima),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            textAlign = TextAlign.Center)
                     }
 
                     if (selectedUri != null) {
-                        Text("Imagen seleccionada")
+                        Text(
+                            stringResource(id = R.string.selected_ima),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center)
+
+                        Spacer(modifier = Modifier.height(5.dp))
                     }
                 }
             },
@@ -264,19 +340,27 @@ fun ImageScreen(
                         selectedUri = null
                         showDialog = false
                     },
-                    enabled = name.value.isNotBlank() && selectedUri != null
+                    enabled = name.value.isNotBlank() && selectedUri != null,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondaryContainer,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
                 ) {
-                    Text("Guardar")
+                    Text(stringResource(id = R.string.con_save_button),
+                        style = MaterialTheme.typography.bodySmall)
                 }
             },
 
             dismissButton = {
-                TextButton(onClick = {
+                TextButton(
+                    onClick = {
                     name.value = ""
                     selectedUri = null
                     showDialog = false
                 }) {
-                    Text("Cancelar")
+                    Text(stringResource(id = R.string.con_cancel_button),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondaryContainer)
                 }
             }
         )
@@ -288,7 +372,7 @@ fun ImageScreen(
         Dialog(
             onDismissRequest = { viewModel.clearSelectedImage() },
             properties = DialogProperties(
-                usePlatformDefaultWidth = false  // 🔥 CLAVE
+                usePlatformDefaultWidth = false
             )
         ) {
 
@@ -322,8 +406,9 @@ fun ImageScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        "Cerrar",
-                        color = Color.White
+                        stringResource(id = R.string.cerrar_ima),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
@@ -361,19 +446,18 @@ fun ImageItem(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            IconButton(onClick = onEdit) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Editar",
+                    tint = MaterialTheme.colorScheme.secondaryContainer
+                )
+            }
 
             IconButton(onClick = onView) {
                 Icon(
                     Icons.Default.Visibility,
                     contentDescription = "Ver",
-                    tint = MaterialTheme.colorScheme.secondaryContainer
-                )
-            }
-
-            IconButton(onClick = onEdit) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Editar",
                     tint = MaterialTheme.colorScheme.secondaryContainer
                 )
             }

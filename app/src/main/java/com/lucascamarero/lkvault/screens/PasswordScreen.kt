@@ -52,8 +52,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.ui.components.PasswordDialog
-import com.lucascamarero.lkvault.utils.PasswordGenerator
-import com.lucascamarero.lkvault.utils.SecureClipboardManager
+import com.lucascamarero.lkvault.utils.password.PasswordGenerator
+import com.lucascamarero.lkvault.utils.clipboard.SecureClipboardManager
 import com.lucascamarero.lkvault.viewmodels.PasswordViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 

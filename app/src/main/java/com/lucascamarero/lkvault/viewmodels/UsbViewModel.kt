@@ -3,9 +3,9 @@ package com.lucascamarero.lkvault.viewmodels
 import android.app.Application
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import com.lucascamarero.lkvault.security.VaultManager
-import com.lucascamarero.lkvault.utils.UsbMonitor
-import com.lucascamarero.lkvault.utils.UsbUtils
+import com.lucascamarero.lkvault.security.vault.VaultManager
+import com.lucascamarero.lkvault.utils.usb.UsbMonitor
+import com.lucascamarero.lkvault.utils.usb.UsbUtils
 
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
 // Este ViewModel gestiona el estado del dispositivo USB dentro de la aplicación.

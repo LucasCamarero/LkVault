@@ -31,7 +31,7 @@
     <!-- Contraseñas -->
     <string name="titulo_con">Passwords</string>
     <string name="titulo_alert">New Password</string>
-    <string name="con_info">No passwords have been created</string>
+    <string name="con_info">There are no saved passwords</string>
     <string name="con_name">Name</string>
     <string name="con_user">User</string>
     <string name="con_password">Password</string>
@@ -49,4 +49,12 @@
     <string name="con_gen">Generate</string>
     <!-- Imágenes -->
     <string name="titulo_ima">Images</string>
+    <string name="titulo_imagen_alert">New Image</string>
+    <string name="select_ima">Select an image</string>
+    <string name="selected_ima">Selected image</string>
+    <string name="cerrar_ima">Close</string>
+    <string name="ima_info">There are no saved images</string>
+    <string name="ima_nombre">Change name</string>
+    <string name="borrar_ima">Delete image</string>
+    <string name="confirm_borrar_ima">Are you sure you want to delete the image?</string>
 </resources>

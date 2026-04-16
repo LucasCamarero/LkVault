@@ -20,8 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
-import com.lucascamarero.lkvault.security.*
-import com.lucascamarero.lkvault.utils.UsbStorageManager
+import com.lucascamarero.lkvault.security.crypto.VaultCryptoManager
+import com.lucascamarero.lkvault.security.key.KeyDerivation
+import com.lucascamarero.lkvault.security.vault.VaultConfig
+import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.VaultViewModel
 import java.io.File
 

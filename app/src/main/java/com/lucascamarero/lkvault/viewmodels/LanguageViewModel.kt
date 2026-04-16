@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
-import com.lucascamarero.lkvault.models.AppLanguage
+import com.lucascamarero.lkvault.models.language.AppLanguage
 import java.util.Locale
 
 // HU-5: SISTEMA DE IDIOMAS
