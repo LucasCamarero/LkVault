@@ -7,8 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
@@ -75,7 +74,8 @@ fun ImageScreen(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .fillMaxHeight(0.9f)
             .padding(20.dp)
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -374,58 +374,17 @@ fun ImageScreen(
             )
         ) {
 
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
 
-                selectedImage?.let { bytes ->
-
-                    val bitmap = remember(bytes) {
-                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    }
-
-                    bitmap?.let {
-
-                        var scale by remember { mutableStateOf(1f) }
-                        var offsetX by remember { mutableStateOf(0f) }
-                        var offsetY by remember { mutableStateOf(0f) }
-
-                        Image(
-                            bitmap = it.asImageBitmap(),
-                            contentDescription = "Imagen segura",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .pointerInput(Unit) {
-                                    detectTransformGestures { _, pan, zoom, _ ->
-
-                                        val newScale = (scale * zoom).coerceIn(1f, 5f)
-                                        scale = newScale
-
-                                        if (scale > 1f) {
-                                            offsetX += pan.x
-                                            offsetY += pan.y
-                                        } else {
-                                            offsetX = 0f
-                                            offsetY = 0f
-                                        }
-                                    }
-                                }
-                                .graphicsLayer(
-                                    scaleX = scale,
-                                    scaleY = scale,
-                                    translationX = offsetX,
-                                    translationY = offsetY
-                                )
-                        )
-                    }
-                }
-
+                // 🔹 BOTÓN ARRIBA
                 TextButton(
                     onClick = { viewModel.clearSelectedImage() },
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.End)
                         .padding(16.dp)
                 ) {
                     Text(
@@ -433,6 +392,103 @@ fun ImageScreen(
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         style = MaterialTheme.typography.bodySmall
                     )
+                }
+
+                // 🔹 ESPACIO ENTRE BOTÓN E IMAGEN
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 🔹 IMAGEN
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    selectedImage?.let { bytes ->
+
+                        val bitmap = remember(bytes) {
+
+                            val original = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+
+                            try {
+                                val exif = ExifInterface(bytes.inputStream())
+
+                                val orientation = exif.getAttributeInt(
+                                    ExifInterface.TAG_ORIENTATION,
+                                    ExifInterface.ORIENTATION_NORMAL
+                                )
+
+                                val matrix = android.graphics.Matrix()
+
+                                when (orientation) {
+                                    ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                                    ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                                    ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                                }
+
+                                android.graphics.Bitmap.createBitmap(
+                                    original,
+                                    0,
+                                    0,
+                                    original.width,
+                                    original.height,
+                                    matrix,
+                                    true
+                                )
+
+                            } catch (e: Exception) {
+                                original
+                            }
+                        }
+
+                        bitmap?.let {
+
+                            var scale by remember { mutableStateOf(1f) }
+                            var offsetX by remember { mutableStateOf(0f) }
+                            var offsetY by remember { mutableStateOf(0f) }
+
+                            val isHorizontal = it.width > it.height
+
+                            // 🔥 clave: ratio invertido si está rotada
+                            val aspectRatio = if (isHorizontal) {
+                                it.height.toFloat() / it.width.toFloat()
+                            } else {
+                                it.width.toFloat() / it.height.toFloat()
+                            }
+
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "Imagen segura",
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .pointerInput(Unit) {
+                                        detectTransformGestures { _, pan, zoom, _ ->
+
+                                            val newScale = (scale * zoom).coerceIn(1f, 5f)
+                                            scale = newScale
+
+                                            if (scale > 1f) {
+                                                offsetX += pan.x
+                                                offsetY += pan.y
+                                            } else {
+                                                offsetX = 0f
+                                                offsetY = 0f
+                                            }
+                                        }
+                                    }
+                                    .graphicsLayer(
+                                        scaleX = scale,
+                                        scaleY = scale,
+                                        translationX = offsetX,
+                                        translationY = offsetY,
+                                        rotationZ = if (isHorizontal) 90f else 0f
+                                    )
+                            )
+                        }
+                    }
                 }
             }
         }
