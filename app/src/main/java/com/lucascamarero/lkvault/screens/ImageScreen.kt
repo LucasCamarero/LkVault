@@ -6,6 +6,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,10 +59,7 @@ fun ImageScreen(
     var showDialog by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
 
-    // nombre imagen
     val name = remember { mutableStateOf("") }
-
-    // URI seleccionada (luego conectarás con galería)
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -79,7 +81,6 @@ fun ImageScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // -------- HEADER --------
         item {
             Row(
                 modifier = Modifier
@@ -113,7 +114,6 @@ fun ImageScreen(
             }
         }
 
-        // -------- LISTA --------
         if (images.isEmpty()) {
             item {
                 Spacer(modifier = Modifier.height(200.dp))
@@ -121,7 +121,8 @@ fun ImageScreen(
                     text = stringResource(id = R.string.ima_info),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 40.dp)
+                    modifier = Modifier.padding(top = 40.dp),
+                    textAlign = TextAlign.Center
                 )
             }
         } else {
@@ -213,7 +214,6 @@ fun ImageScreen(
         )
     }
 
-    // -------- DELETE DIALOG --------
     if (deleteTarget != null) {
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
@@ -258,7 +258,6 @@ fun ImageScreen(
         )
     }
 
-    // -------- ADD IMAGE DIALOG --------
     if (showDialog) {
 
         AlertDialog(
@@ -354,10 +353,10 @@ fun ImageScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
-                    name.value = ""
-                    selectedUri = null
-                    showDialog = false
-                }) {
+                        name.value = ""
+                        selectedUri = null
+                        showDialog = false
+                    }) {
                     Text(stringResource(id = R.string.con_cancel_button),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondaryContainer)
@@ -366,7 +365,6 @@ fun ImageScreen(
         )
     }
 
-    // -------- VISUALIZACIÓN --------
     if (selectedImage != null) {
 
         Dialog(
@@ -389,16 +387,41 @@ fun ImageScreen(
                     }
 
                     bitmap?.let {
+
+                        var scale by remember { mutableStateOf(1f) }
+                        var offsetX by remember { mutableStateOf(0f) }
+                        var offsetY by remember { mutableStateOf(0f) }
+
                         Image(
                             bitmap = it.asImageBitmap(),
                             contentDescription = "Imagen segura",
                             modifier = Modifier
                                 .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    detectTransformGestures { _, pan, zoom, _ ->
+
+                                        val newScale = (scale * zoom).coerceIn(1f, 5f)
+                                        scale = newScale
+
+                                        if (scale > 1f) {
+                                            offsetX += pan.x
+                                            offsetY += pan.y
+                                        } else {
+                                            offsetX = 0f
+                                            offsetY = 0f
+                                        }
+                                    }
+                                }
+                                .graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale,
+                                    translationX = offsetX,
+                                    translationY = offsetY
+                                )
                         )
                     }
                 }
 
-                // Botón cerrar
                 TextButton(
                     onClick = { viewModel.clearSelectedImage() },
                     modifier = Modifier

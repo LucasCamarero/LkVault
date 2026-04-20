@@ -192,7 +192,8 @@ fun PasswordScreen(
                     text = stringResource(id = R.string.con_info),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 40.dp)
+                    modifier = Modifier.padding(top = 40.dp),
+                    textAlign = TextAlign.Center
                 )
             }
 

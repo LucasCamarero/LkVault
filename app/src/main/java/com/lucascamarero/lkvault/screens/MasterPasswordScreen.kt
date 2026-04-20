@@ -303,7 +303,7 @@ fun MasterPasswordScreen(
                 // Botón continuar
                 Button(
                     onClick = {
-                        navController.navigate("password") {
+                        navController.navigate("login") {
                             popUpTo("masterPassword") { inclusive = true }
                         }
                     },
