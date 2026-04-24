@@ -15,7 +15,8 @@
     <string name="pregunta_olvido">¿Has REinstalado la app?</string>
     <string name="recovery_key">Usar recovery key</string>
     <string name="alert_mensaje">Borrar datos</string>
-    <string name="alert_pregunta">Esta acción ELIMINARÁ PERMANENTEMENTE los datos de la unidad USB. ¿Está seguro de que desea continuar?</string>
+    <string name="alert_pregunta">Si quieres CREAR UNA NUEVA CONTRASEÑA MAESTRA puedes ELIMINAR PERMANENTEMENTE todos
+        los datos (tanto de la unidad USB como del teléfono). ¿Estás seguro de que deseas continuar?</string>
     <string name="alert_boton_confirm">Confirmar</string>
     <string name="alert_boton_cancel">Cancelar</string>
     <!-- Login Screen -->

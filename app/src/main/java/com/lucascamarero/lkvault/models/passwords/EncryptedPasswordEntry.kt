@@ -3,8 +3,6 @@ package com.lucascamarero.lkvault.models.passwords
 // HU-19: MODELO DE DATOS PARA CONTRASEÑAS CIFRADAS
 // Esta clase representa la forma persistida de una contraseña dentro del vault.
 // Es el formato que se almacena físicamente en el USB.
-// Este modelo NO debe ser utilizado directamente por la UI.
-// Debe transformarse primero a PasswordEntry mediante descifrado.
 data class EncryptedPasswordEntry(
 
     // Identificador único de la entrada (UUID o timestamp)

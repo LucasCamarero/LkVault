@@ -15,7 +15,8 @@
     <string name="pregunta_olvido">Have you REinstalled the app?</string>
     <string name="recovery_key">Use recovery key</string>
     <string name="alert_mensaje">Delete data</string>
-    <string name="alert_pregunta">This action will PERMANENTLY DELETE the data from the USB drive. Are you sure you want to continue?</string>
+    <string name="alert_pregunta">If you want to CREATE A NEW MASTER PASSWORD, you can PERMANENTLY DELETE all
+        data (from both the USB drive and the phone). Are you sure you want to continue?</string>
     <string name="alert_boton_confirm">Confirm</string>
     <string name="alert_boton_cancel">Cancel</string>
     <!-- Login Screen -->

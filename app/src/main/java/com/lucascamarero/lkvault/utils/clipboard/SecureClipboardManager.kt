@@ -10,7 +10,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-//HU25 Portapapeles seguro con autolimpieza
+// HU-25: PORTAPAPELES SEGURO CON AUTOLIMPIEZA
+// Esta clase gestiona el copiado seguro de datos sensibles al portapapeles.
+// Permite copiar texto y eliminarlo automáticamente tras un tiempo determinado,
+// evitando que información sensible permanezca accesible.
+// Incluye una verificación para no sobrescribir contenido nuevo copiado por el usuario.
 class SecureClipboardManager(
     private val context: Context
 ) {
@@ -18,32 +22,34 @@ class SecureClipboardManager(
     private val clipboard =
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
+    // Job utilizado para gestionar la limpieza diferida del portapapeles
     private var job: Job? = null
 
-    // Último texto copiado (para evitar borrar contenido nuevo del usuario)
+    // Último texto copiado por esta clase (para evitar borrar contenido nuevo del usuario)
     private var lastCopiedText: String? = null
 
-    // Copia al portapapeles y lo limpia automáticamente al de 15 segundos
+    // Copia texto al portapapeles y programa su eliminación automática tras un tiempo.
+    // Por defecto, el contenido se elimina después de 15 segundos.
     fun copyWithAutoClear(text: String, timeoutMillis: Long = 15000) {
 
-        // Cancelar limpieza previa
+        // Se cancela cualquier limpieza previa pendiente
         job?.cancel()
 
-        // Guardar referencia
+        // Se guarda referencia del último texto copiado
         lastCopiedText = text
 
-        // Crear clip seguro
+        // Se crea el clip con el contenido sensible
         val clip = ClipData.newPlainText("LkVault", text)
 
-        // Marcar como sensible
+        // Se marca el contenido como sensible (sugerencia al sistema)
         clip.description.extras = PersistableBundle().apply {
             putBoolean("android.content.extra.IS_SENSITIVE", true)
         }
 
-        // Copiar al portapapeles
+        // Se copia el contenido al portapapeles
         clipboard.setPrimaryClip(clip)
 
-        // Programar limpieza automática
+        // Se programa la limpieza automática usando una coroutine
         job = CoroutineScope(Dispatchers.Main).launch {
 
             delay(timeoutMillis)
@@ -55,7 +61,8 @@ class SecureClipboardManager(
                 val currentText =
                     current.getItemAt(0).coerceToText(context).toString()
 
-                // Solo limpiar si sigue siendo el mismo contenido
+                // Solo se limpia si el contenido actual coincide con el último copiado
+                // evitando borrar contenido nuevo introducido por el usuario
                 if (currentText == lastCopiedText) {
 
                     val emptyClip = ClipData.newPlainText("", "")
@@ -64,6 +71,7 @@ class SecureClipboardManager(
                         putBoolean("android.content.extra.IS_SENSITIVE", true)
                     }
 
+                    // Se sobrescribe el portapapeles con contenido vacío
                     clipboard.setPrimaryClip(emptyClip)
 
                     lastCopiedText = null

@@ -6,7 +6,7 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 // HU-9: IMPLEMENTACIÓN DE CIFRADO AES-256-GCM
-// Responsable de cifrar y descifrar datos con confidencialidad e integridad autenticada.
+// Responsable de cifrar y descifrar datos con confidencialidad e integridad autenticada
 class AesGcmCipher {
 
     private companion object {

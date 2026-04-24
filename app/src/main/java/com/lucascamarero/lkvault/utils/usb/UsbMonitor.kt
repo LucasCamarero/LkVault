@@ -4,10 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.lucascamarero.lkvault.utils.usb.UsbUtils
 
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
-// Esta clase se encarga de monitorizar en tiempo real el estado del almacenamiento externo (USB).
+// Monitoriza en tiempo real el estado del almacenamiento externo (USB).
 // Escucha eventos del sistema relacionados con el montaje y desmontaje de dispositivos,
 // y notifica mediante un callback si existe un USB válido según los criterios definidos.
 class UsbMonitor(
@@ -18,10 +17,10 @@ class UsbMonitor(
     private val onUsbStateChanged: (Boolean) -> Unit
 ) {
 
-    // BroadcastReceiver que escucha eventos del sistema relacionados con el almacenamiento externo
+    // Escucha eventos del sistema relacionados con el almacenamiento externo
     private val receiver = object : BroadcastReceiver() {
 
-        // Método invocado automáticamente cuando se recibe un evento registrado
+        // Se invoca automáticamente cuando se recibe un evento registrado
         override fun onReceive(context: Context?, intent: Intent?) {
 
             // Se evalúa si hay un dispositivo USB válido conectado

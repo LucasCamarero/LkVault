@@ -9,6 +9,16 @@ import com.lucascamarero.lkvault.security.crypto.AesGcmCipher
 import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import java.util.UUID
 
+// HU-26: MODELO DE DATOS PARA IMÁGENES CIFRADAS
+// HU-27: IMPORTAR IMAGEN Y CIFRARLA
+// HU-28: VISUALIZAR IMAGEN DE FORMA SEGURA
+// HU-29: ELIMINAR IMAGEN
+// Repositorio encargado de gestionar el almacenamiento de imágenes cifradas en el USB.
+// Implementa el flujo completo:
+// - Lectura de imagen desde URI
+// - Cifrado mediante AES-GCM con la Master Key
+// - Persistencia en el vault (archivo binario + metadata JSON)
+// - Recuperación y descifrado bajo autenticación activa
 class ImageRepository(private val context: Context) {
 
     private val cipher = AesGcmCipher()
@@ -16,8 +26,12 @@ class ImageRepository(private val context: Context) {
     private val serializer = ImageSerializer()
 
     // -------------------------
-    // HU27 - GUARDAR IMAGEN
+    // HU-27 - IMPORTAR Y CIFRAR IMAGEN
     // -------------------------
+    // Lee una imagen desde un URI, la cifra con la Master Key y la almacena en el USB.
+    // Se generan dos archivos:
+    // - <id>.img → contenido cifrado
+    // - <id>.meta(.json) → metadata (id + nombre)
     fun saveImage(
         name: String,
         imageUri: Uri,
@@ -61,14 +75,17 @@ class ImageRepository(private val context: Context) {
             it.write(serializer.metadataToJson(meta).toByteArray())
         }
 
+        // Limpieza del buffer de entrada en memoria
         inputBytes.fill(0)
 
         return true
     }
 
     // -------------------------
-    // HU28 - LISTAR IMÁGENES
+    // HU-28 - LISTAR IMÁGENES
     // -------------------------
+    // Recupera todas las imágenes almacenadas en el vault.
+    // Lee los archivos de metadata y asocia cada uno con su archivo cifrado correspondiente.
     fun getAllImages(): List<EncryptedImageEntry> {
 
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
@@ -84,7 +101,7 @@ class ImageRepository(private val context: Context) {
 
             val fileName = metaFile.name ?: return@forEach
 
-            // 🔥 IMPORTANTE: tus archivos son .meta.json
+            // Se procesan únicamente archivos de metadata
             if (!fileName.endsWith(".meta.json")) return@forEach
 
             try {
@@ -116,7 +133,7 @@ class ImageRepository(private val context: Context) {
                 )
 
             } catch (e: Exception) {
-                // opcional: Log.e("ImageRepo", "Error leyendo imagen", e)
+                // Se ignoran entradas corruptas o inconsistentes
             }
         }
 
@@ -124,8 +141,10 @@ class ImageRepository(private val context: Context) {
     }
 
     // -------------------------
-    // HU28 - DESCIFRAR
+    // HU-28 - DESCIFRAR IMAGEN
     // -------------------------
+    // Descifra una imagen utilizando la Master Key activa.
+    // Devuelve los bytes en claro para su uso temporal en la UI.
     fun decryptImage(
         entry: EncryptedImageEntry,
         masterKey: ByteArray
@@ -139,8 +158,9 @@ class ImageRepository(private val context: Context) {
     }
 
     // -------------------------
-    // HU29 - ELIMINAR
+    // HU-29 - ELIMINAR IMAGEN
     // -------------------------
+    // Elimina tanto el archivo cifrado como su metadata asociada.
     fun deleteImage(id: String): Boolean {
 
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
@@ -161,6 +181,10 @@ class ImageRepository(private val context: Context) {
         return deletedImg && deletedMeta
     }
 
+    // -------------------------
+    // HU-27 / HU-29 - ACTUALIZAR NOMBRE
+    // -------------------------
+    // Actualiza el nombre de una imagen modificando únicamente su metadata.
     fun updateImageName(id: String, newName: String): Boolean {
 
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)

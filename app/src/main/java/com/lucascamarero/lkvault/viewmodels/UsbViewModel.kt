@@ -10,29 +10,31 @@ import com.lucascamarero.lkvault.utils.usb.UsbUtils
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
 // Este ViewModel gestiona el estado del dispositivo USB dentro de la aplicación.
 // Se encarga de monitorizar la conexión/desconexión, validar el dispositivo
-// y asegurar que la estructura del vault esté correctamente creada.
+// (según los criterios definidos en UsbUtils) y, en caso de ser válido,
+// delegar la creación de la estructura del vault.
 // Expone un estado observable para que la UI reaccione a cambios en tiempo real.
 class UsbViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Estado observable que indica si hay un USB válido conectado (con carpeta LkVault)
+    // Estado observable que indica si hay un USB válido conectado
+    // (es decir, un volumen accesible que contiene la carpeta LkVault)
     var isUsbConnected = mutableStateOf(false)
         private set
 
-    // Gestor encargado de asegurar la estructura interna del vault en el USB
+    // Gestor encargado de garantizar la existencia de la estructura interna del vault
     private val vaultManager = VaultManager()
 
     // Monitor que escucha cambios en el estado del almacenamiento externo
     // Se utiliza Application context para evitar fugas de memoria
     private val monitor = UsbMonitor(application) { isValidDevice ->
 
-        // Si se detecta un dispositivo USB válido
+        // Si se detecta un dispositivo USB válido según UsbUtils
         if (isValidDevice) {
 
             // Se obtiene la raíz del volumen válido
             val root = UsbUtils.getValidExternalRoot(application)
 
             if (root != null) {
-                // Se asegura que la estructura interna del vault esté creada
+                // Se delega en VaultManager la creación de la estructura interna del vault si es necesario
                 vaultManager.createStructureIfNeeded(root)
             }
         }
@@ -47,7 +49,7 @@ class UsbViewModel(application: Application) : AndroidViewModel(application) {
         monitor.start()
     }
 
-    // Método llamado cuando el ViewModel se destruye
+    // Detiene la monitorización
     override fun onCleared() {
 
         // Se detiene la monitorización para evitar fugas de memoria

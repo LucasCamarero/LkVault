@@ -39,28 +39,45 @@ import com.lucascamarero.lkvault.models.images.EncryptedImageEntry
 import com.lucascamarero.lkvault.viewmodels.ImageViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
+// HU26–HU29: GESTIÓN DE IMÁGENES CIFRADAS
+// Esta pantalla permite:
+// - Listar imágenes almacenadas en el USB
+// - Importar nuevas imágenes y cifrarlas con la Master Key
+// - Visualizar imágenes de forma segura (descifrado en memoria)
+// - Editar nombre de imagen (metadata)
+// - Eliminar imágenes del vault
 @Composable
 fun ImageScreen(
     navController: NavController,
     sessionViewModel: SessionViewModel
 ) {
 
+    // ViewModel que gestiona la lógica de imágenes
     val viewModel: ImageViewModel = viewModel()
 
+    // Master Key disponible solo en sesión
     val masterKey = sessionViewModel.masterKey
+
+    // Estado observable de imágenes cifradas
     val images = viewModel.images.value
+
+    // Imagen actualmente descifrada (en memoria)
     val selectedImage = viewModel.selectedImage.value
 
+    // Carga inicial de imágenes al entrar en pantalla
     LaunchedEffect(Unit) {
         viewModel.loadImages()
     }
 
+    // Control de diálogos
     var showDialog by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
 
+    // Datos para creación de imagen
     val name = remember { mutableStateOf("") }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Selector de imagen desde el sistema (SAF)
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -69,9 +86,11 @@ fun ImageScreen(
         }
     }
 
+    // Estado para edición de nombre
     var editTarget by remember { mutableStateOf<EncryptedImageEntry?>(null) }
     val editName = remember { mutableStateOf("") }
 
+    // -------- LISTADO PRINCIPAL --------
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,6 +100,7 @@ fun ImageScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // -------- HEADER --------
         item {
             Row(
                 modifier = Modifier
@@ -95,6 +115,7 @@ fun ImageScreen(
                     style = MaterialTheme.typography.titleSmall
                 )
 
+                // Botón para añadir nueva imagen
                 IconButton(
                     onClick = { showDialog = true },
                     modifier = Modifier
@@ -114,6 +135,7 @@ fun ImageScreen(
             }
         }
 
+        // -------- ESTADO VACÍO --------
         if (images.isEmpty()) {
             item {
                 Spacer(modifier = Modifier.height(200.dp))
@@ -126,17 +148,25 @@ fun ImageScreen(
                 )
             }
         } else {
+
+            // -------- LISTADO DE IMÁGENES --------
             items(images) { entry ->
 
                 ImageItem(
                     entry = entry,
+
+                    // Descifrado bajo demanda
                     onView = {
                         val key = masterKey ?: return@ImageItem
                         viewModel.decryptImage(entry, key)
                     },
+
+                    // Preparar eliminación
                     onDelete = {
                         deleteTarget = entry.id
                     },
+
+                    // Preparar edición
                     onEdit = {
                         editTarget = entry
                         editName.value = entry.name
@@ -146,6 +176,7 @@ fun ImageScreen(
         }
     }
 
+    // -------- DIÁLOGO EDITAR NOMBRE --------
     if (editTarget != null) {
 
         AlertDialog(
@@ -214,6 +245,7 @@ fun ImageScreen(
         )
     }
 
+    // -------- DIÁLOGO ELIMINAR --------
     if (deleteTarget != null) {
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
@@ -258,6 +290,7 @@ fun ImageScreen(
         )
     }
 
+    // -------- DIÁLOGO CREAR IMAGEN --------
     if (showDialog) {
 
         AlertDialog(
@@ -276,6 +309,7 @@ fun ImageScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
+                    // Nombre de la imagen
                     OutlinedTextField(
                         value = name.value,
                         onValueChange = { name.value = it },
@@ -298,6 +332,7 @@ fun ImageScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Selección de imagen
                     Button(
                         onClick = {
                             imagePickerLauncher.launch("image/*")
@@ -310,6 +345,7 @@ fun ImageScreen(
                             textAlign = TextAlign.Center)
                     }
 
+                    // Indicador de selección
                     if (selectedUri != null) {
                         Text(
                             stringResource(id = R.string.selected_ima),
@@ -329,6 +365,7 @@ fun ImageScreen(
                         val key = masterKey ?: return@TextButton
                         val uri = selectedUri ?: return@TextButton
 
+                        // Guardado cifrado
                         viewModel.saveImage(
                             name.value,
                             uri,
@@ -365,6 +402,7 @@ fun ImageScreen(
         )
     }
 
+    // -------- VISUALIZACIÓN SEGURA --------
     if (selectedImage != null) {
 
         Dialog(
@@ -380,7 +418,7 @@ fun ImageScreen(
                     .background(Color.Black)
             ) {
 
-                // 🔹 BOTÓN ARRIBA
+                // Botón cerrar
                 TextButton(
                     onClick = { viewModel.clearSelectedImage() },
                     modifier = Modifier
@@ -394,10 +432,9 @@ fun ImageScreen(
                     )
                 }
 
-                // 🔹 ESPACIO ENTRE BOTÓN E IMAGEN
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 🔹 IMAGEN
+                // Contenedor imagen
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -407,6 +444,7 @@ fun ImageScreen(
 
                     selectedImage?.let { bytes ->
 
+                        // Decodificación + corrección EXIF
                         val bitmap = remember(bytes) {
 
                             val original = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
@@ -444,18 +482,12 @@ fun ImageScreen(
 
                         bitmap?.let {
 
+                            // Estado de zoom y desplazamiento
                             var scale by remember { mutableStateOf(1f) }
                             var offsetX by remember { mutableStateOf(0f) }
                             var offsetY by remember { mutableStateOf(0f) }
 
                             val isHorizontal = it.width > it.height
-
-                            // 🔥 clave: ratio invertido si está rotada
-                            val aspectRatio = if (isHorizontal) {
-                                it.height.toFloat() / it.width.toFloat()
-                            } else {
-                                it.width.toFloat() / it.height.toFloat()
-                            }
 
                             Image(
                                 bitmap = it.asImageBitmap(),
@@ -495,6 +527,8 @@ fun ImageScreen(
     }
 }
 
+// -------- COMPONENTE ITEM --------
+// Representa una imagen individual dentro de la lista
 @Composable
 fun ImageItem(
     entry: EncryptedImageEntry,
@@ -514,6 +548,7 @@ fun ImageItem(
             .padding(16.dp)
     ) {
 
+        // Nombre de la imagen (metadata)
         Text(
             text = entry.name.uppercase(),
             color = MaterialTheme.colorScheme.onPrimary,
@@ -521,6 +556,7 @@ fun ImageItem(
             overflow = TextOverflow.Ellipsis
         )
 
+        // Acciones disponibles
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly

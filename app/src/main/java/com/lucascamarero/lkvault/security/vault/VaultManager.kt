@@ -3,10 +3,8 @@ package com.lucascamarero.lkvault.security.vault
 import java.io.File
 
 // HU-7: ESTRUCTURA INTERNA DE ALMACENAMIENTO EN USB
-// Esta clase gestiona la creación y validación de la estructura de carpetas del vault
-// dentro del dispositivo USB.
-// Su responsabilidad es asegurar que existen los directorios necesarios para almacenar
-// los distintos tipos de datos (contraseñas, imágenes, etc.).
+// Gestiona la estructura interna del vault dentro del dispositivo USB, definiendo las carpetas y
+// archivos utilizados por el sistema.
 class VaultManager {
 
     private companion object {
@@ -20,6 +18,9 @@ class VaultManager {
         // Subcarpeta destinada a almacenar imágenes cifradas
         const val IMAGES_FOLDER = "images"
 
+        // Subcarpeta destinada a almacenar audios cifrados
+        const val AUDIOS_FOLDER = "audios"
+
         // Archivo de configuración criptográfica del vault
         const val CONFIG_FILE = "vault.config"
 
@@ -30,7 +31,9 @@ class VaultManager {
         const val MASTERKEY_SHARE_FILE = "masterkey.share"
     }
 
-    // Crea la estructura del vault si no existe
+    // Garantiza que las subcarpetas principales del vault existan.
+    // NOTA: La carpeta raíz "LkVault" debe existir previamente; en caso contrario,
+    // no se realiza ninguna acción.
     fun createStructureIfNeeded(root: File) {
 
         // Se construye la ruta al directorio raíz del vault dentro del USB
@@ -39,9 +42,10 @@ class VaultManager {
         // Si la carpeta raíz del vault no existe, no se continúa
         if (!vaultDir.exists()) return
 
-        // Se definen las subcarpetas principales
+        // Se definen las subcarpetas principales del vault
         val passwordsDir = File(vaultDir, PASSWORDS_FOLDER)
         val imagesDir = File(vaultDir, IMAGES_FOLDER)
+        val audiosDir = File(vaultDir, AUDIOS_FOLDER)
 
         // Si la carpeta de contraseñas no existe, se crea
         if (!passwordsDir.exists()) {
@@ -51,6 +55,11 @@ class VaultManager {
         // Si la carpeta de imágenes no existe, se crea
         if (!imagesDir.exists()) {
             imagesDir.mkdirs()
+        }
+
+        // Si la carpeta de audios no existe, se crea
+        if (!audiosDir.exists()) {
+            audiosDir.mkdirs()
         }
     }
 }

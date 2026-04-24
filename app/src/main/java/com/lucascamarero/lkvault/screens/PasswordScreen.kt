@@ -2,7 +2,6 @@ package com.lucascamarero.lkvault.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,10 +19,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -43,8 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,8 +50,24 @@ import com.lucascamarero.lkvault.utils.clipboard.SecureClipboardManager
 import com.lucascamarero.lkvault.viewmodels.PasswordViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
 
-// HU-20: CREACIÓN Y ALMACENAMIENTO DE CONTRASEÑAS
-// Pantalla de gestión de contraseñas
+// HU-20: CREAR CONTRASEÑA
+// HU-21: EDITAR CONTRASEÑA
+// HU-22: ELIMINAR CONTRASEÑA
+// HU-23: VISUALIZAR CONTRASEÑA BAJO AUTENTICACIÓN
+// HU-24: GENERADOR DE CONTRASEÑAS ROBUSTAS
+// HU-25: PORTAPAPELES SEGURO CON AUTOLIMPIEZA
+// Pantalla principal de gestión de contraseñas del vault.
+// Responsabilidades:
+// - Mostrar listado de contraseñas cifradas almacenadas en el USB
+// - Permitir crear nuevas contraseñas cifradas
+// - Permitir editar contraseñas existentes (requiere descifrado previo)
+// - Permitir eliminar contraseñas
+// - Permitir copiar usuario o contraseña al portapapeles de forma segura
+// - Permitir generar contraseñas robustas configurables
+// - Gestionar estados de UI (diálogos, selección, validaciones)
+// Requiere:
+// - Master Key en memoria (SessionViewModel)
+// - Acceso al PasswordViewModel como capa de datos
 @Composable
 fun PasswordScreen(
     navController: NavController,
@@ -67,25 +76,30 @@ fun PasswordScreen(
 
     val passwordViewModel: PasswordViewModel = viewModel()
 
+    // Master Key reconstruida tras autenticación (puede ser null si no hay sesión)
     val masterKey = sessionViewModel.masterKey
 
+    // Contraseña actualmente seleccionada (en claro, tras descifrado)
     val selectedPassword = passwordViewModel.selectedPassword.value
 
-    // 🔥 NUEVO: estado lista
+    // Lista de contraseñas cifradas almacenadas en el vault
     val passwords = passwordViewModel.passwords.value
 
-    // 🔥 NUEVO: cargar al entrar
+    // Carga inicial de contraseñas al entrar en la pantalla
     LaunchedEffect(Unit) {
         passwordViewModel.loadPasswords()
     }
 
+    // Estado de visibilidad del diálogo de creación
     var showDialog by remember { mutableStateOf(false) }
 
+    // Estados de campos de entrada (crear/editar)
     val name = remember { mutableStateOf("") }
     val user = remember { mutableStateOf("") }
     val password1 = remember { mutableStateOf("") }
     val password2 = remember { mutableStateOf("") }
 
+    // Limpia los campos de entrada tras operaciones
     fun clearFields() {
         name.value = ""
         user.value = ""
@@ -93,27 +107,35 @@ fun PasswordScreen(
         password2.value = ""
     }
 
+    // Validación de coincidencia de contraseñas
     val showMismatch =
         password2.value.isNotEmpty() &&
                 password1.value != password2.value
 
+    // Validación básica de contraseñas
     val isValid =
         password1.value.isNotBlank() &&
                 password2.value.isNotBlank() &&
                 password1.value == password2.value
 
+    // Validación para creación (requiere nombre y usuario)
     val isValidToSave = isValid && name.value.isNotBlank() && user.value.isNotBlank()
 
+    // Validación para edición (nombre no editable)
     val isValidToEdit = isValid && user.value.isNotBlank()
 
+    // Estados de visibilidad de campos sensibles
     var showUser by remember { mutableStateOf(false) }
     var showPassword1 by remember { mutableStateOf(false) }
     var showPassword2 by remember { mutableStateOf(false) }
 
+    // Entrada cifrada seleccionada (referencia para edición)
     val selectedEncrypted = passwordViewModel.selectedEncrypted.value
 
+    // ID de la contraseña pendiente de eliminación (para confirmación)
     var deleteTarget by remember { mutableStateOf<String?>(null) }
 
+    // Sincroniza los campos cuando se selecciona una contraseña para editar
     LaunchedEffect(selectedPassword) {
         selectedPassword?.let {
             user.value = it.username
@@ -122,23 +144,28 @@ fun PasswordScreen(
         }
     }
 
+    // Estado del generador de contraseñas
     var showGeneratorDialog by remember { mutableStateOf(false) }
 
     val letters = remember { mutableStateOf("") }
     val numbers = remember { mutableStateOf("") }
     val symbols = remember { mutableStateOf("") }
 
+    // Conversión segura de inputs a enteros
     val l = letters.value.toIntOrNull() ?: 0
     val n = numbers.value.toIntOrNull() ?: 0
     val s = symbols.value.toIntOrNull() ?: 0
 
+    // Validación del generador (mínimo letras y longitud máxima)
     val isGeneratorValid =
         l > 0 &&
                 (l + n + s) <= 64
 
+    // Gestor de portapapeles seguro (autolimpieza)
     val context = LocalContext.current
     val clipboardManager = remember { SecureClipboardManager(context) }
 
+    // -------- UI PRINCIPAL --------
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -157,12 +184,15 @@ fun PasswordScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // Título de la pantalla
                 Text(
                     text = stringResource(id = R.string.titulo_con),
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     style = MaterialTheme.typography.titleSmall
                 )
 
+                // Botón para crear nueva contraseña
                 IconButton(
                     onClick = { showDialog = true },
                     modifier = Modifier

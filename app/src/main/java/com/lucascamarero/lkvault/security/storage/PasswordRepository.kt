@@ -10,25 +10,28 @@ import com.lucascamarero.lkvault.security.crypto.AesGcmCipher
 import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import java.util.UUID
 
-// HU-20: CREACIÓN Y ALMACENAMIENTO DE CONTRASEÑAS
-// HU-21: LECTURA DE CONTRASEÑAS DESDE USB
-// Esta clase gestiona la persistencia de contraseñas en el USB.
-// Se encarga de:
-// - Convertir datos en claro a formato cifrado
-// - Aplicar cifrado AES-256-GCM con la Master Key
-// - Guardar los datos en el almacenamiento externo (USB)
-// Recupera todas las contraseñas almacenadas en la carpeta "passwords" del vault.
-// Devuelve una lista de EncryptedPasswordEntry (sin descifrar).
+// HU-20: CREAR CONTRASEÑA
+// HU-21: EDITAR CONTRASEÑA
+// HU-22: ELIMINAR CONTRASEÑA
+// HU-23: VISUALIZAR CONTRASEÑA BAJO AUTENTICACIÓN
+// HU-18: LIMPIEZA SEGURA DE CLAVES EN MEMORIA
+// Repositorio encargado de gestionar la persistencia de contraseñas en el USB.
+// Implementa el flujo completo:
+// - Conversión de datos en claro a payload serializable
+// - Serialización a JSON
+// - Cifrado mediante AES-256-GCM con la Master Key
+// - Almacenamiento en archivos individuales (.pwd)
+// - Recuperación y descifrado bajo sesión autenticada
 // IMPORTANTE:
 // - La Master Key debe estar previamente reconstruida (login)
-// - Nunca se almacena en esta clase
+// - Nunca se almacena ni gestiona dentro de esta clase
 class PasswordRepository(private val context: Context) {
 
     private val cipher = AesGcmCipher()
     private val serializer = PasswordSerializer()
     private val storageManager = UsbStorageManager(context)
 
-    // Crea y guarda una contraseña en el USB
+    // Crea y guarda una nueva contraseña cifrada en el USB
     fun createPassword(
         entry: PasswordEntry,
         masterKey: ByteArray
@@ -84,23 +87,20 @@ class PasswordRepository(private val context: Context) {
         return true
     }
 
+    // Recupera todas las contraseñas almacenadas (sin descifrar)
     fun getAllPasswords(): List<EncryptedPasswordEntry> {
 
-        // -------- 1. Obtener URI del USB --------
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
         val uriString = prefs.getString("usb_uri", null) ?: return emptyList()
         val treeUri = Uri.parse(uriString)
 
-        // -------- 2. Acceder a carpeta passwords --------
         val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
             ?: return emptyList()
 
         val result = mutableListOf<EncryptedPasswordEntry>()
 
-        // -------- 3. Leer archivos --------
         passwordsDir.listFiles().forEach { file ->
 
-            // Leer contenido JSON
             val json = context.contentResolver
                 .openInputStream(file.uri)
                 ?.bufferedReader()
@@ -108,21 +108,18 @@ class PasswordRepository(private val context: Context) {
                 ?: return@forEach
 
             try {
-                // Convertir JSON → modelo
                 val entry = serializer.jsonToEntry(json)
-
                 result.add(entry)
 
             } catch (e: Exception) {
-                // Si el archivo está corrupto o manipulado → se ignora
+                // Se ignoran archivos corruptos o manipulados
             }
         }
 
-        // -------- 4. Devolver lista --------
         return result
     }
 
-    // Descifra una entrada utilizando la Master Key
+    // Descifra una contraseña utilizando la Master Key activa
     fun decryptPassword(
         entry: EncryptedPasswordEntry,
         masterKey: ByteArray
@@ -130,16 +127,13 @@ class PasswordRepository(private val context: Context) {
 
         return try {
 
-            // -------- 1. Descifrar payload --------
             val decryptedBytes = cipher.decrypt(
                 entry.encryptedData,
                 masterKey
             )
 
-            // -------- 2. Convertir a modelo --------
             val payload = serializer.bytesToPayload(decryptedBytes)
 
-            // -------- 3. Construir objeto final --------
             PasswordEntry(
                 name = entry.name,
                 username = payload.username,
@@ -147,11 +141,11 @@ class PasswordRepository(private val context: Context) {
             )
 
         } catch (e: Exception) {
-            // Si falla → clave incorrecta o datos corruptos
             null
         }
     }
 
+    // Alias directo de decryptPassword (facilita uso desde la UI o ViewModel)
     fun decryptPasswordDirect(
         entry: EncryptedPasswordEntry,
         masterKey: ByteArray
@@ -159,18 +153,17 @@ class PasswordRepository(private val context: Context) {
         return decryptPassword(entry, masterKey)
     }
 
+    // Actualiza una contraseña existente sobrescribiendo su archivo
     fun updatePassword(
         entryId: String,
         updatedEntry: PasswordEntry,
         masterKey: ByteArray
     ): Boolean {
 
-        // -------- 1. Obtener URI del USB --------
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
         val uriString = prefs.getString("usb_uri", null) ?: return false
         val treeUri = Uri.parse(uriString)
 
-        // -------- 2. Obtener directorio --------
         val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
             ?: return false
 
@@ -178,7 +171,6 @@ class PasswordRepository(private val context: Context) {
 
         val file = passwordsDir.findFile(fileName) ?: return false
 
-        // -------- 3. Crear payload --------
         val payload = PasswordPayload(
             username = updatedEntry.username,
             password = updatedEntry.password
@@ -186,38 +178,32 @@ class PasswordRepository(private val context: Context) {
 
         val payloadBytes = serializer.payloadToBytes(payload)
 
-        // -------- 4. Cifrar --------
         val encryptedData = cipher.encrypt(payloadBytes, masterKey)
 
-        // -------- 5. Reconstruir modelo --------
         val encryptedEntry = EncryptedPasswordEntry(
             id = entryId,
             name = updatedEntry.name,
             encryptedData = encryptedData
         )
 
-        // -------- 6. Serializar --------
         val json = serializer.entryToJson(encryptedEntry)
 
-        // -------- 7. Sobrescribir archivo --------
         storageManager.openOutput(file.uri)?.use {
             it.write(json.toByteArray(Charsets.UTF_8))
         } ?: return false
 
-        // -------- Limpieza --------
         payloadBytes.fill(0)
 
         return true
     }
 
+    // Elimina una contraseña del vault
     fun deletePassword(entryId: String): Boolean {
 
-        // -------- 1. Obtener URI --------
         val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
         val uriString = prefs.getString("usb_uri", null) ?: return false
         val treeUri = Uri.parse(uriString)
 
-        // -------- 2. Obtener directorio --------
         val passwordsDir = storageManager.getPasswordsDirectory(treeUri)
             ?: return false
 
@@ -225,7 +211,6 @@ class PasswordRepository(private val context: Context) {
 
         val file = passwordsDir.findFile(fileName) ?: return false
 
-        // -------- 3. Eliminar --------
         return file.delete()
     }
 }

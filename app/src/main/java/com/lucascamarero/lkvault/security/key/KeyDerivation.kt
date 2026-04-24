@@ -5,6 +5,9 @@ import org.bouncycastle.crypto.params.Argon2Parameters
 import java.security.SecureRandom
 
 // HU-10: IMPLEMENTACIÓN DE DERIVACIÓN DE CLAVE CON ARGON2ID
+// Responsable de derivar una clave criptográfica segura a partir de la contraseña maestra del usuario.
+// Utiliza el algoritmo Argon2id con parámetros configurados para resistir ataques de fuerza bruta
+// y ataques acelerados por GPU/ASIC.
 class KeyDerivation {
 
     private companion object {
@@ -33,7 +36,8 @@ class KeyDerivation {
     private val secureRandom = SecureRandom()
 
     // Genera un salt aleatorio de 16 bytes que se utilizará en Argon2.
-    // El salt evita que la misma contraseña produzca siempre la misma clave
+    // El salt garantiza que la misma contraseña no produzca siempre la misma clave derivada,
+    // evitando ataques mediante tablas precalculadas (rainbow tables).
     fun generateSalt(): ByteArray {
 
         // Se crea el array de bytes con el tamaño definido para el salt
@@ -47,7 +51,8 @@ class KeyDerivation {
     }
 
     // Deriva una clave criptográfica a partir de la contraseña maestra del usuario
-    // y un salt aleatorio previamente generado
+    // y un salt previamente generado, utilizando Argon2id.
+    // El resultado es una clave de 256 bits apta para AES-256.
     fun deriveKey(password: CharArray, salt: ByteArray): ByteArray {
 
         // Construcción de los parámetros de configuración de Argon2id

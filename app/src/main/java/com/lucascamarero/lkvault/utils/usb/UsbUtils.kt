@@ -6,10 +6,8 @@ import android.os.storage.StorageManager
 import java.io.File
 
 // HU-6: DETECCIÓN Y VALIDACIÓN DE USB CONECTADO
-// Este objeto singleton proporciona utilidades para detectar y validar
-// la presencia de un dispositivo de almacenamiento externo (USB o SD).
-// Aplica criterios estrictos para garantizar que el dispositivo es válido
-// para operar con el vault (montado, removible y con estructura correcta).
+// Objeto singleton que proporciona utilidades para detectar y validar la presencia de un
+// dispositivo de almacenamiento externo (USB o SD)
 object UsbUtils {
 
     // Nombre de la carpeta raíz del vault que debe existir en el USB
@@ -29,21 +27,17 @@ object UsbUtils {
     fun getValidExternalRoot(context: Context): File? {
 
         // Se obtiene el servicio del sistema encargado de gestionar los volúmenes de almacenamiento
-        val storageManager =
-            context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+        val storageManager = context.getSystemService(Context.STORAGE_SERVICE)
+                as StorageManager
 
         // Se obtiene la lista de todos los volúmenes disponibles
         val volumes = storageManager.storageVolumes
 
-        // Se recorren todos los volúmenes detectados
         for (volume in volumes) {
 
-            // Se filtran únicamente los volúmenes:
-            // - removibles (USB o SD)
-            // - que estén montados y accesibles
-            if (volume.isRemovable &&
-                volume.state == Environment.MEDIA_MOUNTED
-            ) {
+            // Se filtran únicamente los volúmenes removibles (USB o SD) que estén montados y
+            // accesibles
+            if (volume.isRemovable && volume.state == Environment.MEDIA_MOUNTED) {
 
                 // Se obtiene el directorio raíz del volumen
                 val directory = volume.directory
@@ -53,12 +47,9 @@ object UsbUtils {
                     // Se construye la ruta a la carpeta "LkVault"
                     val lkVaultFolder = File(directory, VAULT_FOLDER_NAME)
 
-                    // Se comprueba que:
-                    // - la carpeta exista
-                    // - sea realmente un directorio
-                    if (lkVaultFolder.exists() &&
-                        lkVaultFolder.isDirectory
-                    ) {
+                    // Se comprueba que la carpeta exista y que sea realmente un directorio
+                    if (lkVaultFolder.exists() && lkVaultFolder.isDirectory) {
+
                         // Si cumple las condiciones, se devuelve este volumen como válido
                         return directory
                     }

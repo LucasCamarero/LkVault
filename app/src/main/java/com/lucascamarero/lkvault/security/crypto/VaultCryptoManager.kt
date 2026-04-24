@@ -9,9 +9,10 @@ import com.lucascamarero.lkvault.security.recovery.RecoveryKeyManager
 import com.lucascamarero.lkvault.security.recovery.SecretSplitter
 
 // HU-15: FLUJO COMPLETO DE INICIALIZACIÓN CRIPTOGRÁFICA
-// Esta clase orquesta todo el proceso de inicialización del vault.
+// HU-18: LIMPIEZA SEGURA DE CLAVES EN MEMORIA
+// Esta clase orquesta el proceso de inicialización del vault.
 // Se encarga de generar las claves necesarias, aplicar secret splitting,
-// proteger las claves mediante cifrado y preparar todos los elementos
+// proteger las claves mediante cifrado y preparar los elementos
 // que deben almacenarse en el USB y en el dispositivo.
 class VaultCryptoManager(private val context: Context) {
 
@@ -35,13 +36,14 @@ class VaultCryptoManager(private val context: Context) {
 
     // Resultado completo del proceso de inicialización del vault
     data class VaultInitializationResult(
-        val encryptedMasterKey: ByteArray,   // Master Key cifrada
+        val encryptedMasterKey: ByteArray,    // Master Key cifrada
         val encryptedAuxiliaryKey: ByteArray, // Auxiliary Key cifrada con la contraseña
-        val usbShare: ByteArray,             // Share que se almacenará en el USB
-        val recoveryKey: String              // Recovery Key para el usuario
+        val usbShare: ByteArray,              // Share que se almacenará en el USB
+        val recoveryKey: String               // Recovery Key para el usuario
     )
 
-    // Inicializa completamente el vault a partir de la clave derivada de la contraseña
+    // Inicializa completamente el vault a partir de la clave derivada de la contraseña.
+    // NOTA: El parámetro salt se genera y gestiona externamente (no se utiliza en este método).
     fun initializeVault(
         passwordKey: ByteArray,
         salt: ByteArray
@@ -80,7 +82,7 @@ class VaultCryptoManager(private val context: Context) {
         )
 
         // -------- 7. Generación de la Recovery Key --------
-        // Se genera una representación en Base64 de la share del dispositivo
+        // Se genera una representación en Base64 de una de las shares del esquema
         val recoveryKey = recoveryManager.generateRecoveryKey(
             shareDevice
         )
@@ -90,7 +92,7 @@ class VaultCryptoManager(private val context: Context) {
         auxiliaryKey.fill(0)
         masterKey.fill(0)
 
-        // Se devuelve todo lo necesario para persistir el estado del vault
+        // Se devuelve lo necesario para persistir el estado del vault
         return VaultInitializationResult(
             encryptedMasterKey = encryptedMasterKey,
             encryptedAuxiliaryKey = encryptedAux,

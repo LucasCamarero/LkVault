@@ -10,9 +10,12 @@ import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import java.io.File
 
 // HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
+// HU-18: LIMPIEZA SEGURA DE CLAVES EN MEMORIA
 // Esta clase gestiona el proceso completo de desbloqueo del vault.
-// Su responsabilidad es validar la contraseña del usuario, reconstruir la auxiliary key
-// mediante secret splitting y finalmente recuperar la Master Key necesaria para descifrar los datos.
+// Su responsabilidad es verificar la contraseña del usuario mediante derivación de clave,
+// reconstruir la auxiliary key usando secret splitting (USB + dispositivo),
+// y recuperar la Master Key necesaria para descifrar los datos.
+// El flujo incluye validaciones criptográficas implícitas que garantizan integridad y autenticidad.
 class VaultUnlockManager(private val context: Context) {
 
     // Derivación de clave a partir de la contraseña (Argon2id)
@@ -30,7 +33,8 @@ class VaultUnlockManager(private val context: Context) {
     // Gestor de acceso al almacenamiento USB
     private val storageManager = UsbStorageManager(context)
 
-    // Desbloquea el vault a partir de la contraseña del usuario
+    // Desbloquea el vault a partir de la contraseña del usuario.
+    // Devuelve la Master Key si el proceso es correcto, o null en caso de fallo.
     fun unlockVault(password: String): ByteArray? {
 
         // -------- Recuperación de la URI del USB --------
@@ -48,7 +52,7 @@ class VaultUnlockManager(private val context: Context) {
             .openInputStream(configDoc.uri)
             ?.readBytes() ?: return null
 
-        // Se utiliza un archivo temporal para parsear la configuración
+        // Se utiliza un archivo temporal para parsear la configuración binaria
         val tempConfig = File.createTempFile("vault", ".config", context.cacheDir)
         tempConfig.writeBytes(configBytes)
 
@@ -76,11 +80,11 @@ class VaultUnlockManager(private val context: Context) {
             .openInputStream(auxDoc.uri)
             ?.readBytes() ?: return null
 
-        // Se intenta descifrar la auxiliary key usando la clave derivada
+        // Se intenta descifrar la auxiliary key usando la clave derivada.
+        // Si falla, implica contraseña incorrecta o datos alterados.
         val auxiliaryKey = try {
             protector.recover(encryptedAux, derivedKey)
         } catch (e: Exception) {
-            // Si falla (contraseña incorrecta o datos alterados), se aborta
             derivedKey.fill(0)
             return null
         }
@@ -102,7 +106,8 @@ class VaultUnlockManager(private val context: Context) {
         val reconstructed = splitter.combine(shareUsb, shareDevice)
 
         // -------- Verificación de integridad --------
-        // Se comprueba que la reconstrucción coincide con la auxiliary key descifrada
+        // Se comprueba que la clave reconstruida coincide con la descifrada previamente.
+        // Esto valida que ambas shares son correctas (USB + dispositivo).
         if (!auxiliaryKey.contentEquals(reconstructed)) {
             auxiliaryKey.fill(0)
             reconstructed.fill(0)
@@ -119,7 +124,8 @@ class VaultUnlockManager(private val context: Context) {
             .openInputStream(masterDoc.uri)
             ?.readBytes() ?: return null
 
-        // Se descifra la Master Key utilizando la auxiliary key
+        // Se descifra la Master Key utilizando la auxiliary key.
+        // Si falla, implica manipulación de datos o inconsistencia interna.
         val masterKey = try {
             protector.recover(encryptedMasterKey, auxiliaryKey)
         } catch (e: Exception) {

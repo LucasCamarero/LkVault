@@ -25,7 +25,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.lucascamarero.lkvault.models.language.AppLanguage
 import com.lucascamarero.lkvault.screens.*
+import com.lucascamarero.lkvault.security.securestorage.DeviceShareStorage
 import com.lucascamarero.lkvault.ui.theme.Typography2
+import com.lucascamarero.lkvault.utils.getAppVersion
 import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
 import com.lucascamarero.lkvault.viewmodels.*
 
@@ -409,6 +411,8 @@ fun resetVault(context: Context) {
     val storageManager = UsbStorageManager(context)
     val vaultDir = storageManager.getVaultDirectory(treeUri) ?: return
 
+    val deviceStorage = DeviceShareStorage(context)
+
     // borrar contenido USB
     vaultDir.listFiles().forEach {
         it.delete()
@@ -417,6 +421,9 @@ fun resetVault(context: Context) {
     // borrar share local
     val devicePrefs = context.getSharedPreferences("device_share", Context.MODE_PRIVATE)
     devicePrefs.edit().clear().apply()
+
+    // borrar share teléfono
+    deviceStorage.clearShare()
 
     // borrar referencia USB
     prefs.edit().clear().apply()

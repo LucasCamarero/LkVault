@@ -1,5 +1,6 @@
 package com.lucascamarero.lkvault.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,17 +13,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.security.core.SecurityManager
 import com.lucascamarero.lkvault.security.vault.VaultUnlockManager
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
+import com.lucascamarero.lkvault.utils.usb.UsbStorageManager
+import android.net.Uri
 
 // HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
 // HU-17: LIMITACIÓN DE INTENTOS DE ACCESO
 // Pantalla de login donde el usuario introduce la contraseña maestra.
-// Incluye control de intentos fallidos y bloqueo temporal.
+// Gestiona el flujo completo:
+// - Validación de acceso mediante VaultUnlockManager
+// - Reconstrucción de la Master Key si la contraseña es correcta
+// - Control de intentos fallidos y bloqueo temporal (SecurityManager)
+// - Almacenamiento de la Master Key en memoria (SessionViewModel)
+// - Navegación a la aplicación tras autenticación exitosa
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -31,16 +38,16 @@ fun LoginScreen(
 
     val context = LocalContext.current
 
-    // Gestor de seguridad (intentos y bloqueo)
+    // Gestor de seguridad (control de intentos y bloqueo)
     val securityManager = remember { SecurityManager(context) }
 
     // Estado del campo de contraseña
     val password = remember { mutableStateOf("") }
 
-    // Estado de error
+    // Estado de error de autenticación
     var error by remember { mutableStateOf(false) }
 
-    // Estados de control de seguridad
+    // Estados derivados del sistema de seguridad
     var attemptsLeft by remember { mutableStateOf(securityManager.getAttemptsLeft()) }
     var isBlocked by remember { mutableStateOf(securityManager.isBlocked()) }
     var blockTime by remember { mutableStateOf(securityManager.getRemainingBlockTime()) }
@@ -66,7 +73,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Campo contraseña
+            // Campo de contraseña maestra
             OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
@@ -91,11 +98,11 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Botón login
+            // Botón de autenticación
             Button(
                 onClick = {
 
-                    // Si está bloqueado, se cancela el intento
+                    // Si el acceso está bloqueado, no se permite el intento
                     if (securityManager.isBlocked()) {
                         isBlocked = true
                         blockTime = securityManager.getRemainingBlockTime()
@@ -108,24 +115,35 @@ fun LoginScreen(
 
                     if (masterKey != null) {
 
-                        // Login correcto → reset de seguridad
+                        // Autenticación correcta → reset del estado de seguridad
                         securityManager.registerSuccess()
 
                         error = false
                         attemptsLeft = securityManager.getAttemptsLeft()
                         isBlocked = false
 
-                        // Guardo la master Key en sesión
+                        // Aseguramos que existen las carpetas en el USB
+                        // Necesario si reseteamos el usb
+                        val prefs = context.getSharedPreferences("usb_prefs", Context.MODE_PRIVATE)
+                        val uriString = prefs.getString("usb_uri", null)
+
+                        if (uriString != null) {
+                            val treeUri = Uri.parse(uriString)
+                            val storageManager = UsbStorageManager(context)
+                            storageManager.ensureVaultStructure(treeUri)
+                        }
+
+                        // Almacenamiento de la Master Key en memoria (sesión)
                         sessionViewModel.setMasterKey(masterKey)
 
-                        // Navegación a pantalla principal
+                        // Navegación a la pantalla principal
                         navController.navigate("password") {
                             popUpTo("login") { inclusive = true }
                         }
 
                     } else {
 
-                        // Login fallido → registrar intento
+                        // Autenticación fallida → registrar intento
                         securityManager.registerFailure()
 
                         error = true

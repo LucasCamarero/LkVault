@@ -143,4 +143,15 @@ class DeviceShareStorage(context: Context) {
         // Si los datos han sido alterados, se lanzará una excepción
         return cipher.doFinal(ciphertext)
     }
+
+    // Borra la share del teléfono
+    fun clearShare() {
+        // borrar prefs
+        prefs.edit().clear().apply()
+
+        // borrar clave del keystore
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        keyStore.deleteEntry(KEY_ALIAS)
+    }
 }

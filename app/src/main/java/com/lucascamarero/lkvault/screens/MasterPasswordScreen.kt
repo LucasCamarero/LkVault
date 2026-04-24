@@ -29,10 +29,13 @@ import java.io.File
 
 // HU-15: FLUJO COMPLETO DE INICIALIZACIÓN CRIPTOGRÁFICA
 // HU-14: GENERACIÓN Y GESTIÓN DE RECOVERY KEY
-// Pantalla encargada de:
-// - Crear contraseña maestra
-// - Inicializar el vault en el USB
-// - Generar y enviar la Recovery Key
+// Pantalla encargada de inicializar el vault desde cero.
+// Gestiona el flujo completo:
+// - Introducción y validación de la contraseña maestra
+// - Selección del almacenamiento USB mediante SAF
+// - Inicialización criptográfica (generación de claves y cifrado)
+// - Persistencia de los artefactos necesarios en el USB
+// - Generación y envío de la Recovery Key al usuario
 @Composable
 fun MasterPasswordScreen(
     navController: NavController
@@ -72,19 +75,19 @@ fun MasterPasswordScreen(
 
         if (uri != null) {
 
-            // Se guardan permisos persistentes
+            // Se guardan permisos persistentes de acceso al USB
             context.contentResolver.takePersistableUriPermission(
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
 
-            // Se guarda la URI del USB
+            // Se almacena la URI del USB
             prefs.edit()
                 .putString("usb_uri", uri.toString())
                 .apply()
 
-            // Se inicializa el vault
+            // Se ejecuta la inicialización criptográfica completa
             recoveryKey = initializeVault(
                 context,
                 uri,
@@ -92,7 +95,7 @@ fun MasterPasswordScreen(
                 password.value
             )
 
-            // Se actualiza el estado del vault
+            // Se actualiza el estado del vault en el ViewModel
             vaultViewModel.checkVault()
         }
     }
@@ -203,15 +206,6 @@ fun MasterPasswordScreen(
 
                 Spacer(modifier = Modifier.height(150.dp))
 
-                // Texto recuperación
-                Text(
-                    stringResource(id = R.string.pregunta_olvido),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
                 // Navegación a recovery
                 TextButton(
                     onClick = {
@@ -231,7 +225,6 @@ fun MasterPasswordScreen(
 
                 // -------- ENVÍO DE RECOVERY KEY --------
 
-                // Texto informativo email
                 Text(
                     text = stringResource(id = R.string.email_text),
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -256,13 +249,7 @@ fun MasterPasswordScreen(
                     },
                     textStyle = MaterialTheme.typography.labelLarge,
                     singleLine = true,
-                    shape = RoundedCornerShape(26.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        cursorColor = MaterialTheme.colorScheme.primary
-                    )
+                    shape = RoundedCornerShape(26.dp)
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -286,16 +273,9 @@ fun MasterPasswordScreen(
                     },
                     enabled = email.isNotBlank() && !emailSent,
                     modifier = Modifier.height(50.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text(
-                        stringResource(id = R.string.email_button),
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    Text(stringResource(id = R.string.email_button))
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
@@ -309,23 +289,23 @@ fun MasterPasswordScreen(
                     },
                     enabled = emailSent,
                     modifier = Modifier.height(50.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text(
-                        stringResource(id = R.string.email_button2),
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    Text(stringResource(id = R.string.email_button2))
                 }
             }
         }
     }
 }
 
-// Inicialización completa del vault (HU-15)
+// HU-15: FLUJO COMPLETO DE INICIALIZACIÓN CRIPTOGRÁFICA
+// HU-18: LIMPIEZA SEGURA DE CLAVES EN MEMORIA
+// Ejecuta el flujo completo de inicialización del vault:
+// - Derivación de clave desde contraseña (Argon2)
+// - Generación de claves internas
+// - Aplicación de cifrado y secret splitting
+// - Persistencia de artefactos en el USB
+// Devuelve la Recovery Key generada para el usuario
 private fun initializeVault(
     context: Context,
     treeUri: Uri,
@@ -333,7 +313,6 @@ private fun initializeVault(
     password: String
 ): String {
 
-    // Derivación de clave desde contraseña
     val keyDerivation = KeyDerivation()
     val cryptoManager = VaultCryptoManager(context)
 
@@ -346,10 +325,9 @@ private fun initializeVault(
         salt
     )
 
-    // Limpieza password
+    // Limpieza de contraseña en memoria
     passwordChars.fill('\u0000')
 
-    // Inicialización criptográfica completa
     val result = cryptoManager.initializeVault(
         derivedKey,
         salt
@@ -357,7 +335,8 @@ private fun initializeVault(
 
     val config = VaultConfig.create(salt)
 
-    // Escritura de archivos en USB
+    // -------- Persistencia en USB --------
+
     val configUri = storageManager.createFile(treeUri, "vault.config")
         ?: return result.recoveryKey
 
@@ -391,7 +370,7 @@ private fun initializeVault(
         it.write(result.usbShare)
     }
 
-    // Limpieza derivedKey
+    // Limpieza de clave derivada
     derivedKey.fill(0)
 
     return result.recoveryKey

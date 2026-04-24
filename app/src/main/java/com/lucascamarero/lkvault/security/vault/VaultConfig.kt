@@ -7,8 +7,10 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 // HU-7: ESTRUCTURA INTERNA DE ALMACENAMIENTO EN USB
-// Representa la configuración criptográfica del vault almacenada en el archivo vault.config.
-// Este archivo contiene únicamente metadatos necesarios para derivar la clave desde la contraseña.
+// HU-10: IMPLEMENTACIÓN DE DERIVACIÓN DE CLAVE CON ARGON2ID
+// Representa la configuración criptográfica del vault almacenada en el archivo "vault.config".
+// Este archivo contiene los parámetros necesarios para la derivación de clave (KDF) a partir
+// de la contraseña del usuario, incluyendo salt y configuración de Argon2.
 data class VaultConfig(
 
     // Versión del formato del archivo de configuración.
@@ -53,13 +55,15 @@ data class VaultConfig(
             )
         }
 
-        // Carga la configuración del vault desde el archivo vault.config.
+        // Carga la configuración del vault desde el archivo "vault.config".
+        // El archivo se interpreta en formato binario siguiendo el orden de escritura definido
+        // en save().
         fun load(file: File): VaultConfig {
 
             // Se abre el archivo en modo lectura binaria.
             DataInputStream(FileInputStream(file)).use { input ->
 
-                // Se lee la versión del formato almacenada en el archivo.
+                // Se lee la versión del formato almacenada en el archivo (1 byte sin signo).
                 val version = input.readUnsignedByte()
 
                 // Se crea un array de bytes para almacenar el salt leído.
@@ -85,13 +89,14 @@ data class VaultConfig(
         }
     }
 
-    // Guarda la configuración actual en el archivo vault.config.
+    // Guarda la configuración actual en el archivo "vault.config".
+    // Los datos se escriben en formato binario siguiendo un orden fijo para su posterior lectura.
     fun save(file: File) {
 
         // Se abre el archivo en modo escritura binaria.
         DataOutputStream(FileOutputStream(file)).use { output ->
 
-            // Se escribe la versión del formato.
+            // Se escribe la versión del formato (1 byte).
             output.writeByte(version)
 
             // Se escriben los 16 bytes del salt.
@@ -101,7 +106,7 @@ data class VaultConfig(
             output.writeInt(iterations)
             output.writeInt(memoryKB)
 
-            // Se escribe el nivel de paralelismo.
+            // Se escribe el nivel de paralelismo (1 byte).
             output.writeByte(parallelism)
         }
     }

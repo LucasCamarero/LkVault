@@ -2,7 +2,8 @@ package com.lucascamarero.lkvault.viewmodels
 
 import androidx.lifecycle.ViewModel
 
-// HU-16: GESTIÓN DE SESIÓN CRIPTOGRÁFICA (MASTER KEY EN MEMORIA)
+// HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
+// HU-18: LIMPIEZA SEGURA DE CLAVES EN MEMORIA
 // Esta clase gestiona el ciclo de vida de la Master Key dentro de la aplicación.
 // Su responsabilidad es mantener la Master Key únicamente en memoria (RAM)
 // durante una sesión autenticada, sin persistirla en ningún almacenamiento.

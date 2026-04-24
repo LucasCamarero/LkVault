@@ -3,21 +3,20 @@ package com.lucascamarero.lkvault.security.serialization
 import android.util.Base64
 import com.google.gson.Gson
 import com.lucascamarero.lkvault.models.passwords.EncryptedPasswordEntry
-import com.lucascamarero.lkvault.security.serialization.PasswordPayload
 import kotlin.collections.get
 
-// HU-19: SERIALIZACIÓN DE CONTRASEÑAS
-// Esta clase se encarga de convertir objetos de contraseña entre:
-// - Objetos Kotlin
-// - Representación JSON
-// - ByteArray para cifrado
+// HU-19: MODELO DE DATOS PARA CONTRASEÑAS CIFRADAS
+// Responsable de la serialización y deserialización de contraseñas.
+// También gestiona la conversión de datos binarios a Base64 para su almacenamiento en JSON.
 class PasswordSerializer {
 
+    // Librería de Google que sirve para la serialización y deserialización
     private val gson = Gson()
 
     // -------- PASSWORD PAYLOAD --------
 
-    // Convierte PasswordPayload a ByteArray (JSON)
+    // Convierte un PasswordPayload (datos en claro) a ByteArray mediante JSON.
+    // Este formato es el que posteriormente se cifra.
     fun payloadToBytes(payload: PasswordPayload): ByteArray {
 
         val json = gson.toJson(payload)
@@ -25,7 +24,7 @@ class PasswordSerializer {
         return json.toByteArray(Charsets.UTF_8)
     }
 
-    // Convierte ByteArray a PasswordPayload
+    // Convierte un ByteArray (previamente descifrado) a PasswordPayload.
     fun bytesToPayload(bytes: ByteArray): PasswordPayload {
 
         val json = String(bytes, Charsets.UTF_8)
@@ -35,7 +34,8 @@ class PasswordSerializer {
 
     // -------- ENCRYPTED ENTRY --------
 
-    // Convierte EncryptedPasswordEntry a JSON (para guardar en USB)
+    // Convierte EncryptedPasswordEntry a JSON para su almacenamiento en el USB.
+    // El campo encryptedData se codifica en Base64 ya que JSON no soporta datos binarios.
     fun entryToJson(entry: EncryptedPasswordEntry): String {
 
         val base64Data = Base64.encodeToString(entry.encryptedData, Base64.NO_WRAP)
@@ -49,7 +49,8 @@ class PasswordSerializer {
         return gson.toJson(map)
     }
 
-    // Convierte JSON a EncryptedPasswordEntry
+    // Convierte un JSON almacenado en el USB a EncryptedPasswordEntry.
+    // El campo encryptedData se decodifica desde Base64 a ByteArray.
     fun jsonToEntry(json: String): EncryptedPasswordEntry {
 
         val map = gson.fromJson(json, Map::class.java)

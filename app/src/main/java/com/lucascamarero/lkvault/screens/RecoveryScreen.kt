@@ -20,37 +20,43 @@ import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.security.vault.VaultRecoveryManager
 
 // HU-14: GENERACIÓN Y GESTIÓN DE RECOVERY KEY
-// HU-16: RECUPERACIÓN DE ACCESO
-// Pantalla que permite restaurar el acceso al vault mediante la Recovery Key.
+// HU-16: FLUJO DE AUTENTICACIÓN Y RECONSTRUCCIÓN DE MASTER KEY
+// Pantalla que permite restaurar el acceso al vault mediante una Recovery Key.
+// Gestiona el flujo:
+// - Introducción de la Recovery Key por parte del usuario
+// - Selección del dispositivo USB mediante SAF
+// - Restauración de la share del dispositivo en almacenamiento seguro
+// - Configuración de la URI del USB para futuras operaciones
+// - Redirección al flujo de autenticación (login)
 @Composable
 fun RecoveryScreen(navController: NavController) {
 
     val context = LocalContext.current
 
-    // Gestor de recuperación del vault
+    // Gestor de recuperación del vault (reconstrucción parcial del estado)
     val recoveryManager = VaultRecoveryManager(context)
 
-    // Estado de la recovery key introducida
+    // Estado de la Recovery Key introducida
     var recoveryKey by remember { mutableStateOf("") }
 
-    // Estado de error
+    // Estado de error en el proceso de recuperación
     var error by remember { mutableStateOf(false) }
 
-    // Selector de USB (SAF)
+    // Launcher SAF para seleccionar el USB
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
 
         if (uri != null) {
 
-            // Permisos persistentes
+            // Se solicitan permisos persistentes sobre el USB
             context.contentResolver.takePersistableUriPermission(
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
 
-            // Intento de restauración
+            // Se intenta restaurar el acceso utilizando la Recovery Key
             val success = recoveryManager.restoreAccess(
                 recoveryKey,
                 uri
@@ -60,12 +66,13 @@ fun RecoveryScreen(navController: NavController) {
 
                 error = false
 
-                // Navegación a login
+                // Navegación al login para continuar con la autenticación
                 navController.navigate("login") {
                     popUpTo("masterPassword") { inclusive = true }
                 }
 
             } else {
+                // Recovery Key inválida o error en el proceso
                 error = true
             }
         }
@@ -81,7 +88,7 @@ fun RecoveryScreen(navController: NavController) {
 
         item {
 
-            // Texto explicativo
+            // Texto explicativo del proceso de recuperación
             Text(
                 stringResource(id = R.string.intro_recovery),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -92,7 +99,7 @@ fun RecoveryScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Campo recovery key
+            // Campo de entrada de la Recovery Key
             OutlinedTextField(
                 value = recoveryKey,
                 onValueChange = { recoveryKey = it },
@@ -116,7 +123,7 @@ fun RecoveryScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Botón recuperar
+            // Botón para iniciar el proceso de recuperación
             Button(
                 onClick = {
                     launcher.launch(null)
@@ -137,7 +144,7 @@ fun RecoveryScreen(navController: NavController) {
                 )
             }
 
-            // Mensaje de error
+            // Mensaje de error si la Recovery Key no es válida
             if (error) {
                 Spacer(modifier = Modifier.height(40.dp))
 

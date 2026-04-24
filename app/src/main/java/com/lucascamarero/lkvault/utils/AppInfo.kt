@@ -1,9 +1,9 @@
-package com.lucascamarero.lkvault
+package com.lucascamarero.lkvault.utils
 
 import android.content.Context
 
-// HU-4: SCREEN MANAGER
-// Devuelve la versión de la aplicación (versionName) definida en build.gradle
+// Devuelve la versión de la aplicación (versionName) definida en build.gradle.
+// Si no se puede obtener (error o valor nulo), devuelve una cadena vacía.
 fun getAppVersion(context: Context): String {
 
     return try {
