@@ -1,5 +1,6 @@
 package com.lucascamarero.lkvault.screens
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,12 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -38,6 +41,7 @@ import com.lucascamarero.lkvault.R
 import com.lucascamarero.lkvault.models.images.EncryptedImageEntry
 import com.lucascamarero.lkvault.viewmodels.ImageViewModel
 import com.lucascamarero.lkvault.viewmodels.SessionViewModel
+import java.io.File
 
 // HU26–HU29: GESTIÓN DE IMÁGENES CIFRADAS
 // Esta pantalla permite:
@@ -83,6 +87,23 @@ fun ImageScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             selectedUri = uri
+        }
+    }
+
+    // Obtiene el contexto actual de la aplicación dentro de Compose
+    val context = LocalContext.current
+
+    // URI temporal donde se almacenará la imagen capturada por la cámara.
+    // Se crea antes de lanzar la cámara y permite recuperar la foto una vez tomada.
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Launcher que gestiona la apertura de la cámara usando Activity Result API.
+    // Utiliza TakePicture(), que guarda la imagen directamente en el URI proporcionado.
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            selectedUri = tempPhotoUri
         }
     }
 
@@ -345,6 +366,25 @@ fun ImageScreen(
                             textAlign = TextAlign.Center)
                     }
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Tomar foto con la cámara
+                    Button(
+                        onClick = {
+                            val uri = createTempImageUri(context)
+                            tempPhotoUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.tomar_foto),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
                     // Indicador de selección
                     if (selectedUri != null) {
                         Text(
@@ -371,6 +411,10 @@ fun ImageScreen(
                             uri,
                             key
                         )
+
+                        uri.path?.let {
+                            File(it).delete()
+                        }
 
                         name.value = ""
                         selectedUri = null
@@ -586,4 +630,24 @@ fun ImageItem(
             }
         }
     }
+}
+
+// Crea un archivo temporal en el almacenamiento interno de la app (cache)
+// y devuelve un URI seguro mediante FileProvider para ser utilizado por la cámara
+fun createTempImageUri(context: Context): Uri {
+
+    // Crea un archivo temporal con nombre y extensión definidos dentro del directorio cache.
+    // Este archivo será el destino donde la cámara guardará la imagen capturada.
+    val file = File.createTempFile(
+        "temp_image",
+        ".jpg",
+        context.cacheDir
+    )
+
+    // Convierte el archivo en un URI seguro usando FileProvider.
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.provider",
+        file
+    )
 }

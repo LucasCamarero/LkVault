@@ -2,13 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permite detección de dispositivos USB -->
+    <!-- Permite que la app pueda actuar como host USB (leer dispositivos USB conectados).
+         No es obligatorio (required=false), por lo que la app puede instalarse en dispositivos sin esta feature. -->
     <uses-feature
         android:name="android.hardware.usb.host"
         android:required="false" />
 
-    <!-- Permiso lectura almacenamiento externo -->
+    <!-- Declara que la app puede usar cámara.
+         Tampoco es obligatorio → la app sigue funcionando sin cámara. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Permiso para leer almacenamiento externo (necesario para seleccionar imágenes desde el sistema). -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!-- Permiso para usar la cámara del dispositivo. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
         android:allowBackup="true"
@@ -19,18 +29,40 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LkVault">
+
+        <!-- FileProvider:
+             Permite compartir archivos de forma segura con otras apps (en este caso, la cámara).
+             Es imprescindible para usar ActivityResultContracts.TakePicture(),
+             ya que Android no permite pasar rutas de archivos directas por seguridad. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+
+            <!-- Define qué rutas de archivos puede exponer el FileProvider.
+                 Apunta a file_paths.xml (cache, etc.). -->
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Activity principal de la app -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.LkVault"
             android:screenOrientation="portrait">
+
+            <!-- Define esta activity como punto de entrada (launcher) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>

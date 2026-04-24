@@ -58,4 +58,5 @@
     <string name="ima_nombre">Change name</string>
     <string name="borrar_ima">Delete image</string>
     <string name="confirm_borrar_ima">Are you sure you want to delete the image?</string>
+    <string name="tomar_foto">Take photo</string>
 </resources>
