@@ -80,6 +80,22 @@ class UsbStorageManager(private val context: Context) {
         return vaultDir.findFile("audios")
     }
 
+    // Devuelve el subdirectorio "videos" dentro del vault
+    fun getVideosDirectory(treeUri: Uri): DocumentFile? {
+
+        val vaultDir = getVaultDirectory(treeUri) ?: return null
+
+        return vaultDir.findFile("videos")
+    }
+
+    // Devuelve el subdirectorio "docs" dentro del vault
+    fun getDocsDirectory(treeUri: Uri): DocumentFile? {
+
+        val vaultDir = getVaultDirectory(treeUri) ?: return null
+
+        return vaultDir.findFile("docs")
+    }
+
     // Crea las carpetas si estas no existen
     fun ensureVaultStructure(treeUri: Uri) {
 
@@ -95,6 +111,14 @@ class UsbStorageManager(private val context: Context) {
 
         if (vaultDir.findFile("audios") == null) {
             vaultDir.createDirectory("audios")
+        }
+
+        if (vaultDir.findFile("videos") == null) {
+            vaultDir.createDirectory("videos")
+        }
+
+        if (vaultDir.findFile("docs") == null) {
+            vaultDir.createDirectory("docs")
         }
     }
 }

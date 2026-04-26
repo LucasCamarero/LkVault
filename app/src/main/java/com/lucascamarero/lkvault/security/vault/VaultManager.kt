@@ -21,6 +21,12 @@ class VaultManager {
         // Subcarpeta destinada a almacenar audios cifrados
         const val AUDIOS_FOLDER = "audios"
 
+        // Subcarpeta destinada a almacenar vídeos cifrados
+        const val VIDEOS_FOLDER = "videos"
+
+        // Subcarpeta destinada a almacenar documentos cifrados
+        const val DOCS_FOLDER = "docs"
+
         // Archivo de configuración criptográfica del vault
         const val CONFIG_FILE = "vault.config"
 
@@ -46,6 +52,8 @@ class VaultManager {
         val passwordsDir = File(vaultDir, PASSWORDS_FOLDER)
         val imagesDir = File(vaultDir, IMAGES_FOLDER)
         val audiosDir = File(vaultDir, AUDIOS_FOLDER)
+        val videosDir = File(vaultDir, VIDEOS_FOLDER)
+        val docsDir = File(vaultDir, DOCS_FOLDER)
 
         // Si la carpeta de contraseñas no existe, se crea
         if (!passwordsDir.exists()) {
@@ -60,6 +68,16 @@ class VaultManager {
         // Si la carpeta de audios no existe, se crea
         if (!audiosDir.exists()) {
             audiosDir.mkdirs()
+        }
+
+        // Si la carpeta de vídeos no existe, se crea
+        if (!videosDir.exists()) {
+            videosDir.mkdirs()
+        }
+
+        // Si la carpeta de documentos no existe, se crea
+        if (!docsDir.exists()) {
+            docsDir.mkdirs()
         }
     }
 }

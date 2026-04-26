@@ -5,9 +5,12 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.*
@@ -163,6 +166,21 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
                     // Pantalla de imágenes
                     composable("image") {
                         ImageScreen(navController, sessionViewModel)
+                    }
+
+                    // Pantalla de audios
+                    composable("audio") {
+                        AudioScreen(navController, sessionViewModel)
+                    }
+
+                    // Pantalla de videos
+                    composable("video") {
+                        VideoScreen(navController, sessionViewModel)
+                    }
+
+                    // Pantalla de documentos
+                    composable("doc") {
+                        DocumentScreen(navController, sessionViewModel)
                     }
                 }
             }
@@ -383,6 +401,78 @@ fun BarraInferior(navController: NavHostController) {
             selected = currentRoute == "image",
             onClick = {
                 navController.navigate("image") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.background,
+                indicatorColor = Color.Transparent
+            )
+        )
+
+        // Botón sección audios
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.Headphones,
+                    contentDescription = "Audio",
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            selected = currentRoute == "audio",
+            onClick = {
+                navController.navigate("audio") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.background,
+                indicatorColor = Color.Transparent
+            )
+        )
+
+        // Botón sección videos
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.Videocam,
+                    contentDescription = "Video",
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            selected = currentRoute == "video",
+            onClick = {
+                navController.navigate("video") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.background,
+                indicatorColor = Color.Transparent
+            )
+        )
+
+        // Botón sección documentos
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.DocumentScanner,
+                    contentDescription = "Document",
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            selected = currentRoute == "doc",
+            onClick = {
+                navController.navigate("doc") {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true
                     restoreState = true
