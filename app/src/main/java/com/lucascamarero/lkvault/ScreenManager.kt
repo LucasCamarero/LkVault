@@ -69,7 +69,8 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
     LaunchedEffect(vaultInitialized) {
         if (vaultInitialized) {
             navController.navigate("login") {
-                popUpTo("masterPassword") { inclusive = true }
+                popUpTo(0)
+                launchSingleTop = true
             }
         }
     }
