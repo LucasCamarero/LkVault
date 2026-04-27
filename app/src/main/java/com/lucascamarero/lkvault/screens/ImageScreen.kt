@@ -1,8 +1,11 @@
 package com.lucascamarero.lkvault.screens
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -104,6 +108,26 @@ fun ImageScreen(
     ) { success ->
         if (success && tempPhotoUri != null) {
             selectedUri = tempPhotoUri
+        }
+    }
+
+    val mensaje = stringResource(id = R.string.permiso_camara)
+
+    // Launcher que solicita el permiso de cámara en tiempo de ejecución.
+    // Utiliza ActivityResultContracts.RequestPermission(), que muestra el diálogo del sistema.
+    // El resultado (permitido o denegado) se recibe en el callback.
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val uri = createTempImageUri(context)
+            tempPhotoUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(
+                context,
+                mensaje,
+                Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -371,11 +395,20 @@ fun ImageScreen(
                     // Tomar foto con la cámara
                     Button(
                         onClick = {
-                            val uri = createTempImageUri(context)
-                            tempPhotoUri = uri
-                            cameraLauncher.launch(uri)
-                        }
+                            val permission = Manifest.permission.CAMERA
 
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    permission
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                val uri = createTempImageUri(context)
+                                tempPhotoUri = uri
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(permission)
+                            }
+                        }
                     ) {
                         Text(
                             text = stringResource(id = R.string.tomar_foto),

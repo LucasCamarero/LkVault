@@ -59,4 +59,5 @@
     <string name="borrar_ima">Eliminar imágen</string>
     <string name="confirm_borrar_ima">¿Seguro que quieres eliminar la imágen?</string>
     <string name="tomar_foto">Tomar foto</string>
+    <string name="permiso_camara">Permiso de cámara denegado</string>
 </resources>

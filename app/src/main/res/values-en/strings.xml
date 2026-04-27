@@ -59,4 +59,5 @@
     <string name="borrar_ima">Delete image</string>
     <string name="confirm_borrar_ima">Are you sure you want to delete the image?</string>
     <string name="tomar_foto">Take photo</string>
+    <string name="permiso_camara">Camera permission denied</string>
 </resources>
