@@ -20,6 +20,9 @@
     <!-- Permiso para usar la cámara del dispositivo. -->
     <uses-permission android:name="android.permission.CAMERA"/>
 
+    <!-- Permiso para grabar audio -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

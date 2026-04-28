@@ -111,6 +111,7 @@ fun ImageScreen(
         }
     }
 
+    // Mensaje mostrado al usuario cuando el permiso de cámara es denegado.
     val mensaje = stringResource(id = R.string.permiso_camara)
 
     // Launcher que solicita el permiso de cámara en tiempo de ejecución.

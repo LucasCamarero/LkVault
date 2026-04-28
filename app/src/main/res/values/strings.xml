@@ -60,4 +60,21 @@
     <string name="confirm_borrar_ima">¿Seguro que quieres eliminar la imágen?</string>
     <string name="tomar_foto">Tomar foto</string>
     <string name="permiso_camara">Permiso de cámara denegado</string>
+    <!-- Audios -->
+    <string name="titulo_aud">Audios</string>
+    <string name="titulo_audio_alert">Nuevo Audio</string>
+    <string name="select_aud">Selecciona un audio</string>
+    <string name="selected_aud">Audio seleccionado</string>
+    <string name="cerrar_aud">Cerrar</string>
+    <string name="aud_info">No hay audios guardados</string>
+    <string name="aud_nombre">Cambiar nombre</string>
+    <string name="borrar_aud">Eliminar audio</string>
+    <string name="confirm_borrar_aud">¿Seguro que quieres eliminar el audio?</string>
+    <string name="grabar_audio">Grabar audio</string>
+    <string name="permiso_grabadora">Permiso de grabadora denegado</string>
+    <string name="reproducir_audio">Reproducir</string>
+    <string name="reproduciendo_audio">Reproduciendo</string>
+    <string name="reanudar_audio">Reanudar</string>
+    <string name="pausar_audio">Pausar</string>
+    <string name="detener_audio">Detener</string>
 </resources>

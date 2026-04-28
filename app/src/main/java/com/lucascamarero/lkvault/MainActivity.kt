@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
-                ) {
+                ) {/*
                     when {
 
                         // Pantalla inicial de presentación (Splash)
@@ -62,7 +62,10 @@ class MainActivity : AppCompatActivity() {
                                 languageViewModel = languageViewModel
                             )
                         }
-                    }
+                    }*/
+                    ScreenManager(
+                        languageViewModel = languageViewModel
+                    )
 
                 }
             }

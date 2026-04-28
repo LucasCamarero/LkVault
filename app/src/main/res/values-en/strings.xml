@@ -60,4 +60,21 @@
     <string name="confirm_borrar_ima">Are you sure you want to delete the image?</string>
     <string name="tomar_foto">Take photo</string>
     <string name="permiso_camara">Camera permission denied</string>
+    <!-- Audios -->
+    <string name="titulo_aud">Audios</string>
+    <string name="titulo_audio_alert">New Audio</string>
+    <string name="select_aud">Select an audio</string>
+    <string name="selected_aud">Selected audio</string>
+    <string name="cerrar_aud">Close</string>
+    <string name="aud_info">There are no saved audios</string>
+    <string name="aud_nombre">Change name</string>
+    <string name="borrar_aud">Delete audio</string>
+    <string name="confirm_borrar_aud">Are you sure you want to delete the audio?</string>
+    <string name="grabar_audio">Record audio</string>
+    <string name="permiso_grabadora">Recorder permission denied</string>
+    <string name="reproducir_audio">Play</string>
+    <string name="reproduciendo_audio">Playing</string>
+    <string name="reanudar_audio">Resume</string>
+    <string name="pausar_audio">Pause</string>
+    <string name="detener_audio">Stop</string>
 </resources>
