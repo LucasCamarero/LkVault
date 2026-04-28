@@ -77,4 +77,16 @@
     <string name="reanudar_audio">Resume</string>
     <string name="pausar_audio">Pause</string>
     <string name="detener_audio">Stop</string>
+    <!-- Vídeos -->
+    <string name="titulo_vid">Videos</string>
+    <string name="titulo_video_alert">New Video</string>
+    <string name="select_vid">Select a video</string>
+    <string name="selected_vid">Selected video</string>
+    <string name="cerrar_vid">Close</string>
+    <string name="vid_info">There are no saved videos</string>
+    <string name="vid_nombre">Change name</string>
+    <string name="borrar_vid">Delete video</string>
+    <string name="confirm_borrar_vid">Are you sure you want to delete the video?</string>
+    <string name="tomar_video">Take video</string>
+    <string name="permiso_camara_vid">Camera permission denied</string>
 </resources>

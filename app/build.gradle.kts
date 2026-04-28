@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.compose.foundation)
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

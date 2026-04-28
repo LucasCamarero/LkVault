@@ -77,4 +77,16 @@
     <string name="reanudar_audio">Reanudar</string>
     <string name="pausar_audio">Pausar</string>
     <string name="detener_audio">Detener</string>
+    <!-- Vídeos -->
+    <string name="titulo_vid">Vídeos</string>
+    <string name="titulo_video_alert">Nuevo Vídeo</string>
+    <string name="select_vid">Selecciona un vídeo</string>
+    <string name="selected_vid">Vídeo seleccionado</string>
+    <string name="cerrar_vid">Cerrar</string>
+    <string name="vid_info">No hay vídeos guardados</string>
+    <string name="vid_nombre">Cambiar nombre</string>
+    <string name="borrar_vid">Eliminar vídeo</string>
+    <string name="confirm_borrar_vid">¿Seguro que quieres eliminar el vídeo?</string>
+    <string name="tomar_video">Grabar video</string>
+    <string name="permiso_camara_vid">Permiso de cámara denegado</string>
 </resources>
