@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation(libs.ui)
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.appcompat)

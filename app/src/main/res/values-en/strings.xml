@@ -89,4 +89,14 @@
     <string name="confirm_borrar_vid">Are you sure you want to delete the video?</string>
     <string name="tomar_video">Take video</string>
     <string name="permiso_camara_vid">Camera permission denied</string>
+    <!-- Documentos -->
+    <string name="titulo_doc">Documents</string>
+    <string name="titulo_doc_alert">New Document</string>
+    <string name="select_doc">Select a document</string>
+    <string name="selected_doc">Selected document</string>
+    <string name="cerrar_doc">Close</string>
+    <string name="doc_info">There are no saved documents</string>
+    <string name="doc_nombre">Change name</string>
+    <string name="borrar_doc">Delete document</string>
+    <string name="confirm_borrar_doc">Are you sure you want to delete the document?</string>
 </resources>

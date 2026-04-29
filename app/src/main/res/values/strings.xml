@@ -89,4 +89,14 @@
     <string name="confirm_borrar_vid">¿Seguro que quieres eliminar el vídeo?</string>
     <string name="tomar_video">Grabar video</string>
     <string name="permiso_camara_vid">Permiso de cámara denegado</string>
+    <!-- Documentos -->
+    <string name="titulo_doc">Documentos</string>
+    <string name="titulo_doc_alert">Nuevo Documento</string>
+    <string name="select_doc">Selecciona un documento</string>
+    <string name="selected_doc">Documento seleccionado</string>
+    <string name="cerrar_doc">Cerrar</string>
+    <string name="doc_info">No hay documentos guardados</string>
+    <string name="doc_nombre">Cambiar nombre</string>
+    <string name="borrar_doc">Eliminar documento</string>
+    <string name="confirm_borrar_doc">¿Seguro que quieres eliminar el documento?</string>
 </resources>

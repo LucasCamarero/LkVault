@@ -181,7 +181,7 @@ fun ScreenManager(languageViewModel: LanguageViewModel) {
 
                     // Pantalla de documentos
                     composable("doc") {
-                        DocumentScreen(navController, sessionViewModel)
+                        DocScreen(navController, sessionViewModel)
                     }
                 }
             }
